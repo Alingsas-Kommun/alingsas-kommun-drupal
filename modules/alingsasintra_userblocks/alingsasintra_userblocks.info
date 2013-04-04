@@ -1,5 +1,5 @@
-name = Demo Features
-description = Stuff that isn't ready yet, but worth showing.
+name = User blocks
+description = User blocks for the right columns.
 package = Alingsås Intranet
 core = 7.x
 dependencies[] = alingsasintra

@@ -9,19 +9,19 @@
 /**
  * Implementation of hook_enable().
  */
-function alingsasintra_demo_enable() {
+function alingsasintra_userblocks_enable() {
 }
 
 /**
  * Implementation of hook_disable().
  */
-function alingsasintra_demo_disable() {
+function alingsasintra_userblocks_disable() {
 }
 
 /**
  * Implementation of hook_uninstall().
  */
-function alingsasintra_demo_uninstall() {
+function alingsasintra_userblocks_uninstall() {
   $ret = array();
   return $ret;
 }
@@ -29,7 +29,7 @@ function alingsasintra_demo_uninstall() {
 /**
  * Implementation of hook_install().
  */
-function alingsasintra_demo_install() {
+function alingsasintra_userblocks_install() {
   $ret = array();
   return $ret;
 }
