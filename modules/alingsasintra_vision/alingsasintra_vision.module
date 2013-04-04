@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * @file
+ * Connectiong to Vision 80/20 to get user-status
+ */
+
+function alingsasintra_vision_init() {
+  drupal_add_library('system', 'drupal.ajax');
+}
+
+function alingsasintra_vision_menu() {
+    $items['vision/%/status'] = array(
+    'page callback' => '_alingsasintra_vision_user_status',
+    'page arguments' => array(1),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function _alingsasintra_vision_user_status($uid) {
+
+  $status = array();
+  $error = false;
+  $user_data = user_load($uid);
+
+  if (isset($user_data->field_firstname['und'][0]['value']) && isset($user_data->field_lastname['und'][0]['value'])) {
+    require_once 'includes/IP.php';
+    require_once 'includes/ConnectorSearchResult.php';
+    require_once 'includes/ConnectorPacket.php';
+    require_once 'includes/Connector.php';
+
+    $conn = new Connector();
+    //Add your IP address here
+    if (!$conn->connect('XXX.XXX.XXX.XXX', 2089)) {
+      $error = t("Couldn't connect to service.");
+    }
+
+    $conn->req_s();
+
+    if (!$error) {
+      $packet = new ConnectorPacket('SEARCH', array(FLD_SESSION => $conn->session));
+      $packet->add(FLD_SEARCHFLD, '1,' . $user_data->field_firstname['und'][0]['value']);
+      $packet->add(FLD_SEARCHFLD, '2,' . $user_data->field_lastname['und'][0]['value']);
+
+      $conn->send($packet);
+      $reply = $conn->read();
+    }
+
+    if ($reply == null) {
+      $error = t("Communication error: No reply received.");
+    }
+    if (!$error && $reply->failed()) {
+      $error = "Communication error: {$reply->errno} {$reply->errtext}";
+    }
+
+    if (!$error) {
+      $result['success'] == true;
+      $result = new ConnectorSearchResult($reply);
+      if(isset($result->records[0]) && count($result->records) == 1) {
+        $status['available'] = ($result->records[0][10] == 'J') ? 1 : 0;
+      }
+      if(isset($result->records[0]['hv'][0])) {
+        if($result->records[0]['hv'][0]['start'] <= date('YmdHis') && $result->records[0]['hv'][0]['stop'] > date('YmdHis')) {
+          $status['start'] = date('d M Y H:i', strtotime($result->records[0]['hv'][0]['start']));
+          $status['stop'] = ($result->records[0]['hv'][0]['stop'] == 99990101000000) ? "tillsvidare" : date('d M Y H:i', strtotime($result->records[0]['hv'][0]['stop']));
+          $status['message'] = utf8_encode($result->records[0]['hv'][0]['orstext']);
+        }
+      }
+    }
+
+    $conn->end();
+    $conn->disconnect();
+  }
+  else {
+    $error = 'Not a valid user.';
+  }
+
+  drupal_json_output($status);
+}
