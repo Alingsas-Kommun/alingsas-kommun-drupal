@@ -1,0 +1,139 @@
+<?php
+
+function alingsasintra_demo_block_info() {
+  $blocks = array();
+  $blocks['bulletin_board'] = array(
+      'info' => t('Anslagstavlan'),
+      'status' => 1,
+      'region' => 'sidebar_second',
+      'weight' => 10,
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'pages' => '<front>',
+  );
+  $blocks['open_jobs'] = array(
+      'info' => t('Lediga Tjänster'),
+      'status' => 1,
+      'region' => 'sidebar_second',
+      'weight' => 10,
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'pages' => '<front>',
+  );
+  $blocks['sidebar_user'] = array(
+      'info' => t('Användarnas Boxer'),
+      'status' => 1,
+      'region' => 'sidebar_third',
+      'weight' => 0,
+      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+      'pages' => '',
+  );
+  return $blocks;
+}
+
+function alingsasintra_demo_block_view($delta = '') {
+  switch ($delta) {
+    case 'bulletin_board':
+      $block['content'] = _alingsasintra_block_bulletin_board();
+      return $block;
+      break;
+    case 'open_jobs':
+      $block['content'] = _alingsasintra_block_open_jobs();
+      return $block;
+      break;
+    case 'sidebar_user':
+      $block['content'] = _alingsasintra_block_sidebar_user();
+      return $block;
+      break;
+  }
+}
+
+function _alingsasintra_block_bulletin_board() {
+  $output = <<<EOL
+      <div class="m bulletin-board open">
+      	<div class="m-h">
+      	</div>
+      	<div class="m-c cf">
+      		<h2><a href="/anslagstavlan">Anslagstavlan</a></h2>
+      	</div>
+      	<span></span>
+      	<span></span>
+      </div>
+EOL;
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_block_open_jobs() {
+  $output = <<<EOL
+      <div class="m job-module cf">
+      		<div class="m-h">
+      		</div>
+      		<div class="m-c">
+      			<h2><a href="https://kommunportalen.alingsas.se/intranet/kommunportal.nsf/inpWebIframe?readform&id=8DDA9A29BB326E99C12577070028F96E&qm=startmenu">Lediga interna tjänster</a></h2>
+      		</div>
+      </div>
+EOL;
+  return array('#markup' => $output);
+}
+function _alingsasintra_block_sidebar_user() {
+  global $user;
+  $user_data = user_load($user->uid);
+  $terms = array();
+  $output_tools = '';
+  foreach($user_data->field_organizational_structure['und'] as $term) {
+    $terms[] = $term['tid'];
+  }
+  if(count($terms)) {
+    $result = db_query("SELECT DISTINCT node.nid FROM node
+      LEFT JOIN taxonomy_index ON node.nid = taxonomy_index.nid
+      WHERE node.type='verktyg'
+        AND node.status=1
+        AND (taxonomy_index.tid IN (".join(',', $terms).") OR node.promote=1)
+      ORDER BY node.title");
+  }
+  else {
+    $result = db_query("SELECT DISTINCT node.nid FROM node
+    WHERE node.type='verktyg'
+      AND node.status=1
+      AND node.promote=1
+    ORDER BY node.title");
+  }
+
+  if($result) {
+    $links = array();
+    foreach(node_load_multiple($result->fetchCol()) as $link) {
+      $links[] = '<li><a href="'.$link->field_link['und'][0]['value'].'" target="_blank">'.$link->title.'</a></li>';
+    }
+    if(count($links)) {
+      $links = join(' ', $links);
+      $output_tools = <<<EOL
+    <div id="tool" class="m toggle-module toggle cf open">
+	<div class="m-h cf">
+		<span class="toggle-icon tool"></span>
+		<h2>Verktyg</h2>
+	</div>
+	<div class="m-c cf">
+		<div class="toggle-list">
+		  {$links}
+    </div>
+	</div>
+</div>
+EOL;
+    }
+  }
+
+  $output = <<<EOL
+      <div id="message" class="m toggle-module cf">
+      	<div class="m-h cf">
+      		<span class="toggle-icon message"></span>
+      		<h2><a href="http://lotus1.alingsas.se/">Min e-post och kalender</a></h2>
+      	</div>
+      </div>
+      <div id="cal" class="m toggle-module cf">
+      	<div class="m-h cf">
+      		<span class="toggle-icon cal"></span>
+      		<h2><a href="/kalender">Aktiviteter och kurser</a></h2>
+      	</div>
+      </div>
+      {$output_tools}
+EOL;
+  return array('#markup' => $output);
+}

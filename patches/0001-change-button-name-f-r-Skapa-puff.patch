@@ -1,0 +1,29 @@
+From bedf0ed036cf2fae492956e8feb7c3b783a4d6ee Mon Sep 17 00:00:00 2001
+From: Carsten Nielsen <carsten@redpill-linpro.com>
+Date: Wed, 3 Apr 2013 13:05:17 +0200
+Subject: [PATCH] =?UTF-8?q?change=20button=20name=20f=C3=B6r=20Skapa=20puf?=
+ =?UTF-8?q?f.?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ www/sites/all/modules/inline_entity_form/inline_entity_form.module | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/www/sites/all/modules/inline_entity_form/inline_entity_form.module b/www/sites/all/modules/inline_entity_form/inline_entity_form.module
+index cb2a3bc..d01e142 100644
+--- a/www/sites/all/modules/inline_entity_form/inline_entity_form.module
++++ b/www/sites/all/modules/inline_entity_form/inline_entity_form.module
+@@ -668,7 +668,7 @@ function inline_entity_form_field_widget_form(&$form, &$form_state, $field, $ins
+ 
+         $element['actions']['ief_add'] = array(
+           '#type' => 'submit',
+-          '#value' => t('Add new @type_singular', array('@type_singular' => $labels['singular'])),
++          '#value' => t('Add new teaser'),
+           '#name' => 'ief-' . $ief_id . '-add',
+           '#limit_validation_errors' => array(array_merge($parents, array('actions'))),
+           '#ajax' => array(
+-- 
+1.8.2
+

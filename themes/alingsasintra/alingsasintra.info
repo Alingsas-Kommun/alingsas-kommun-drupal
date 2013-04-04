@@ -1,0 +1,43 @@
+name = Alingsas Intranet Theme
+description = Alingsas Intranet Theme
+core = 7.x
+engine = phptemplate
+screenshot = screenshot.png
+
+; REQUIRED CORE REGIONS
+regions[header] = Page header
+regions[content] = Page content
+regions[footer] = Page footer
+
+; ADDITIONAL REGIONS
+regions[header_first] = Header first
+regions[sidebar_second] = Sidebar second
+regions[sidebar_third] = Sidebar third
+regions[notification_area] = Notification area
+
+; STYLESHEETS
+stylesheets[all][] = gui/css/basic.css
+stylesheets[all][] = gui/css/wide/wide-12.css
+stylesheets[all][] = gui/css/normal/normal-12.css
+stylesheets[all][] = gui/css/fluid/fluid-12.css
+stylesheets[all][] = gui/css/narrow/narrow-12.css
+stylesheets[all][] = gui/css/global.css
+stylesheets[all][] = gui/css/drupal.css
+stylesheets[all][] = gui/components/netr-flexslider/css/flexslider.css
+stylesheets[all][] = gui/components/netr-custom-select/css/netr-custom-select.css
+stylesheets[all][] = gui/components/netrtabbedmodule/css/netrtabbedmodule.css
+stylesheets[print][] = gui/css/print.css
+
+; LIBRARIES
+scripts[] = gui/js/vendor/jquery.placeholder.min.js
+scripts[] = gui/js/vendor/jquery.cookie.js
+scripts[] = gui/js/vendor/html5shiv.js
+scripts[] = gui/js/netr/netr.js
+scripts[] = gui/js/netr/netr.string.js
+scripts[] = gui/js/netr/netr.uri.js
+scripts[] = gui/js/netr/netr.responsive.js
+scripts[] = gui/js/netr/jquery.netrnavmenu.js
+scripts[] = gui/js/netr/jquery.netrsubnav.js
+scripts[] = gui/components/netr-custom-select/js/netr-custom-select.js
+scripts[] = gui/components/netrtabbedmodule/js/jquery.netrtabbedmodule.js
+scripts[] = gui/js/startup.js

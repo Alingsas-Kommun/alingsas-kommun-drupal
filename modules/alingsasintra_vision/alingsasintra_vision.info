@@ -1,0 +1,4 @@
+name = Connection to VIsion 80/20
+description = Connect to vision to show user-status
+package = Alingsås Intranet
+core = 7.x

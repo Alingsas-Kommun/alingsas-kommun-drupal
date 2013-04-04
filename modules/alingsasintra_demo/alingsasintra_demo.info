@@ -1,0 +1,6 @@
+name = Demo Features
+description = Stuff that isn't ready yet, but worth showing.
+package = Alingsås Intranet
+core = 7.x
+dependencies[] = alingsasintra
+dependencies[] = block

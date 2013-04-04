@@ -1,0 +1,56 @@
+From ba737dd47b96f742859a716187d96362909e0382 Mon Sep 17 00:00:00 2001
+From: Carsten Nielsen <carsten@redpill-linpro.com>
+Date: Thu, 20 Dec 2012 19:49:32 +0100
+Subject: [PATCH] Fix menuux
+
+---
+ www/sites/all/modules/menuux/menuux.admin.inc | 1 +
+ www/sites/all/modules/menuux/menuux.module    | 6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/www/sites/all/modules/menuux/menuux.admin.inc b/www/sites/all/modules/menuux/menuux.admin.inc
+index b01fb71..5337bb7 100755
+--- a/www/sites/all/modules/menuux/menuux.admin.inc
++++ b/www/sites/all/modules/menuux/menuux.admin.inc
+@@ -194,6 +194,7 @@ function menuux_node_form_submit(&$node) {
+   }
+   if ($link['menu_name']) {
+     menu_link_save($link);
++    menu_cache_clear($link['menu_name']);
+   }
+ }
+ 
+diff --git a/www/sites/all/modules/menuux/menuux.module b/www/sites/all/modules/menuux/menuux.module
+index e0f24fd..53810d4 100755
+--- a/www/sites/all/modules/menuux/menuux.module
++++ b/www/sites/all/modules/menuux/menuux.module
+@@ -61,7 +61,7 @@ function menuux_menu() {
+ /**
+  * Implementation of hook_nodeapi
+  */
+-function menuux_node_validate(&$node) {
++function menuux_node_validate($node) {
+   if (isset($node->fmenu)) {
+     module_load_include('inc', 'menuux', 'menuux.admin');
+     menuux_node_form_validate($node);
+@@ -71,7 +71,7 @@ function menuux_node_validate(&$node) {
+ /**
+  * Implementation of hook_node_update
+  */
+-function menuux_node_update(&$node) {
++function menuux_node_update($node) {
+   if (isset($node->fmenu)) {
+     module_load_include('inc', 'menuux', 'menuux.admin');
+     menuux_node_form_submit($node);
+@@ -81,7 +81,7 @@ function menuux_node_update(&$node) {
+ /**
+  * Implementation of hook_node_insert
+  */
+-function menuux_node_insert(&$node) {
++function menuux_node_insert($node) {
+   if (isset($node->fmenu)) {
+     module_load_include('inc', 'menuux', 'menuux.admin');
+     menuux_node_form_submit($node);
+-- 
+1.8.0
+

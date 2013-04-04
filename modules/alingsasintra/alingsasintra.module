@@ -1,0 +1,1151 @@
+<?php
+
+/**
+ * @file
+ * Defines base features for the Alingsås Intranet project.
+ */
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function alingsasintra_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['search_result_teaser'] = array(
+      'label' => t('Search result teaser'),
+      'custom settings' => TRUE,
+  );
+}
+
+/**
+  * Implements hook_menu().
+  */
+function alingsasintra_menu() {
+  $items['admin/ldap/sync/groups'] = array(
+      'page callback' => '_alingsasintra_ldap_sync_groups',
+      'access arguments' => array('administer users'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['admin/ldap/sync/users'] = array(
+      'page callback' => '_alingsasintra_ldap_sync_users',
+      'access arguments' => array('administer users'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['bookmark/%/add'] = array(
+      'page callback' => '_alingsasintra_ajax_add_bookmark',
+      'page arguments' => array(1),
+      'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['bookmark/%/delete'] = array(
+      'page callback' => '_alingsasintra_ajax_delete_bookmark',
+      'page arguments' => array(1),
+      'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['bookmark/%/check'] = array(
+      'page callback' => '_alingsasintra_ajax_check_bookmark',
+      'page arguments' => array(1),
+      'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['news/get/%/%/%/%'] = array(
+      'page callback' => '_alingsasintra_ajax_get_news',
+      'page arguments' => array(2,3,4,5),
+      'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['news/get/%/%/%/%'] = array(
+      'page callback' => '_alingsasintra_ajax_get_news',
+      'page arguments' => array(2,3,4,5),
+      'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['user/edit-contact'] = array(
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('alingsasintra_usercontact_form'),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['user/edit-favorites'] = array(
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('alingsasintra_userfavorites_form'),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['user/edit-newsfeed'] = array(
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('alingsasintra_usernewsfeed_form'),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function alingsasintra_menu_alter(&$items) {
+  $items['user/%user/edit']['access callback'] = 'alingsasintra_edit_access';
+}
+
+function alingsasintra_edit_access($account) {
+  return user_access('administer users') && $account->uid > 0;
+}
+
+function _alingsasintra_ajax_get_news($viewid, $display, $page=0, $itemid='nid') {
+
+  $nids = array();
+  $content = '';
+  $attribute = $display == 'index_all' ? ' ni' : '';
+  $view = views_get_view($viewid);
+  $view->set_current_page($page);
+  $view->execute($display);
+  if($view->result) {
+    foreach($view->result as $item) {
+      $nids[] = $item->$itemid;
+    }
+  }
+  if(count($nids)) {
+    $nodes = node_load_multiple($nids);
+  }
+  foreach($nodes as $node) {
+    $content_array = node_view($node, 'teaser', NULL);
+    $content .= '<li class="cf ' . $attribute . '">' . render($content_array) . '</li>';
+  }
+  drupal_json_output(array(
+      'success' => 'true',
+      'total_rows' => $view->total_rows,
+      'rows' => count($view->result),
+      'content' => $content));
+}
+
+function _alingsasintra_ajax_add_bookmark($nid = null) {
+  global $user;
+  $user = user_load($user->uid);
+  if($nid) {
+    $node = node_load($nid);
+    if($node) {
+      $title = strip_tags($node->title);
+      if(strlen($title) > 50){
+        $title = substr($title,0,47)."...";
+      }
+      $user->field_bookmarks[LANGUAGE_NONE][] = array(
+            "url" => "node/".$nid,
+            "title"=> $title,
+            "attributes" =>  array(
+                "target" => "",
+            )
+          );
+      user_save($user);
+      drupal_json_output(array('success' => 'true'));
+      return;
+    }
+  }
+  drupal_json_output(array('success' => 'false'));
+}
+
+function _alingsasintra_ajax_delete_bookmark($nid = null) {
+  global $user;
+  if(strpos($nid, 'item-') !== FALSE ){
+    $account = entity_metadata_wrapper('user', $user);
+    $delta = substr($nid, 5);
+    $account->field_bookmarks[$delta]->set();
+    $account->save();
+    drupal_json_output(array('success' => 'true', 'message' => 'Item deleted successfully.'));
+    return;
+  }
+  else {
+    $user = user_load($user->uid);
+    if($nid && count($user->field_bookmarks[LANGUAGE_NONE]) > 0) {
+      $bookmarks = $user->field_bookmarks[LANGUAGE_NONE];
+      foreach($bookmarks as &$bookmark) {
+        if($bookmark['url'] == 'node/'.$nid){
+          $bookmark["url"] = '';
+          $bookmark["title"]= '';
+          $bookmark["attributes"] =  array();
+          break;
+        }
+      }
+      $user->field_bookmarks[LANGUAGE_NONE] = array_values($bookmarks);
+      user_save($user);
+      drupal_json_output(array('success' => 'true'));
+      return;
+    }
+  }
+  drupal_json_output(array('success' => 'false'));
+}
+
+function _alingsasintra_ajax_check_bookmark($nid = null) {
+  global $user;
+  $user = user_load($user->uid);
+  if($nid && count($user->field_bookmarks[LANGUAGE_NONE]) > 0) {
+    $bookmarks = $user->field_bookmarks[LANGUAGE_NONE];
+    foreach($bookmarks as &$bookmark) {
+      if($bookmark['url'] == 'node/'.$nid){
+        drupal_json_output(array('success' => 'true'));
+        return;
+        break;
+      }
+    }
+  }
+  drupal_json_output(array('success' => 'false'));
+}
+
+/**
+ * Cron jobs for syncing stuff.
+ */
+function alingsasintra_cron() {
+
+  /* run LDAP-group-sync once every 24h */
+  $lastsync = variable_get('alingsasintra_ldap_lastsync', 0);
+  if($lastsync < (time()-(24*60*60))){
+    drupal_set_message("Running LDAP-group-sync...");
+    _alingsasintra_ldap_sync_groups(TRUE);
+  }
+
+  /*$lastsync = variable_get('alingsasintra_ldap_users_lastsync', 0);
+  if($lastsync < (time()-(24*60*60))){
+    drupal_set_message("Running LDAP-user-sync...");
+    _alingsasintra_ldap_sync_users(TRUE);
+  }*/
+}
+
+/**
+ * Run ldap_sync for groups.
+ */
+function _alingsasintra_ldap_sync_groups($intern = FALSE) {
+  $lasthash = variable_get('alingsasintra_ldap_lasthash', '');
+  if(!$intern) $lasthash = '';
+  if($voc = taxonomy_vocabulary_machine_name_load('organizational_structure')){
+    $queries = ldap_query_get_queries('ldap_group_hierarchy', 'enabled');
+    $result = $queries['ldap_group_hierarchy']->query();
+    $groups = array();
+    $dns = array();
+    for($i=0; $i < $result['count']; $i++) {
+      if(isset($result[$i]['pidparentdn']['count'])) unset($result[$i]['pidparentdn']['count']);
+      $groups[$result[$i]['dn']] = array('name' => $result[$i]['description'][0], 'parent' => $result[$i]['pidparentdn']);
+    }
+
+    if(count($groups)) {
+      ksort($groups);
+      //only run this if the group array differs.
+      $hash = hash('md4', serialize($groups));
+      if($hash !== $lasthash) {
+        $count = 0;
+        //Delete all items from queue.
+        $queue = DrupalQueue::get('addLdapGroups', TRUE);
+        $queue->deleteQueue();
+        $queue = DrupalQueue::get('addLdapGroups', TRUE);
+        foreach($groups as $key => $value){
+          $dns[] = $key;
+          $item = array();
+          $item['vid'] = $voc->vid;
+          $item['dn'] = $key;
+          $item['parents'] = $value['parent'];
+          $item['name'] = $value['name'];
+          $queue->createItem($item);
+          $count++;
+        }
+        $queue = DrupalQueue::get('removeLdapGroups', TRUE);
+        $queue->createItem($dns);
+        drupal_set_message("Added $count jobs (LDAP groups) to cron-queue. (DNs: ".count($dns).")");
+        variable_set('alingsasintra_ldap_lastsync', time());
+        variable_set('alingsasintra_ldap_lasthash', $hash);
+      }
+    }
+    else {
+      //Keep the old entries - LDAP is not reachable or doesn't return groups...
+      drupal_set_message("The LDAP server didn't return any groups!", 'error');
+    }
+  }
+  if(!$intern) {
+    echo "Done!<br/>";
+    var_dump(drupal_get_messages());
+  }
+}
+
+/**
+ * Run ldap_sync for users.
+ */
+function _alingsasintra_ldap_sync_users($intern = FALSE) {
+  $lasthash = variable_get('alingsasintra_ldap_users_lasthash', '');
+  if(!$intern) $lasthash = '';
+  $queries = ldap_query_get_queries('ldap_users', 'enabled');
+  $result = $queries['ldap_users']->query();
+  $hash = hash('md4', serialize($result));
+
+  if(isset($result['count']) && $result['count'] > 0 && $hash !== $lasthash) {
+
+    $queue = DrupalQueue::get('addLdapUsers', TRUE);
+    $queue->deleteQueue();
+    $queue = DrupalQueue::get('addLdapUsers', TRUE);
+
+    for($i=0; $i < $result['count']; $i++) {
+      $mail = ($result[$i]['mail'][0]) ? $result[$i]['mail'][0] : $result[$i]['uid'].'@alingsas.se';
+      if(isset($result[$i]['groupmembership']['count'])) unset($result[$i]['groupmembership']['count']);
+      $user = array(
+          'uid' => $result[$i]['uid'][0],
+          'mail' => $mail,
+          'groups' => $result[$i]['groupmembership'],
+          'firstname' => $result[$i]['givenname'][0],
+          'lastname' => $result[$i]['sn'][0],
+          'ou' => $result[$i]['ou'][0],
+      );
+      $queue->createItem($user);
+    }
+    drupal_set_message("Added $i users (from LDAP) to cron-queue.");
+    variable_set('alingsasintra_ldap_users_lastsync', time());
+    variable_set('alingsasintra_ldap_users_lasthash', $hash);
+  }
+  else {
+    //Keep the old entries - LDAP is not reachable or doesn't return groups...
+    drupal_set_message("The LDAP server didn't return any users!", 'error');
+  }
+  if(!$intern) {
+    echo "Done!<br/>";
+    var_dump(drupal_get_messages());
+  }
+}
+
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function alingsasintra_cron_queue_info() {
+  $queues = array();
+  $queues['addLdapGroups'] = array(
+      'worker callback' => '_worker_add_group',
+      'time' => 60,
+  );
+  $queues['removeLdapGroups'] = array(
+      'worker callback' => '_worker_delete_group',
+      'time' => 60,
+  );
+  $queues['addLdapUsers'] = array(
+      'worker callback' => '_worker_add_user',
+      'time' => 60,
+  );
+  return $queues;
+}
+
+/**
+ * Worker for user import
+ */
+function _worker_add_user($item) {
+  if($user = user_load_by_name($item['uid'])) {
+    //update user
+  }
+  else {
+    //create user
+  }
+}
+
+/**
+ * Worker for group import
+ */
+function _worker_add_group($item) {
+  $queue = DrupalQueue::get('addLdapGroups', TRUE);
+  $newterm = new stdClass();
+  $newterm->name = $item['name'];
+  $newterm->vid = $item['vid'];
+  $newterm->parent = array();
+  $field_dn = array();
+  $field_dn[LANGUAGE_NONE][0]['value'] = $item['dn'];
+  $newterm->field_taxonomy_dn = $field_dn;
+  $query = new EntityFieldQuery();
+  $result = $query
+    ->entityCondition('entity_type', 'taxonomy_term')
+    ->entityCondition('bundle', 'organizational_structure')
+    ->fieldCondition('field_taxonomy_dn', 'value', $item['dn'], '=', 0)
+    ->execute();
+  if(count($result)) {
+    $term = array_keys($result['taxonomy_term']);
+    $newterm->tid = $term[0];
+  }
+
+  if(!count($item['parents'])) {
+    $newterm->parent[] = 0;
+  }
+  else {
+    $query = new EntityFieldQuery();
+    if(isset($item['parents']['count'])) unset($item['parents']['count']);
+    $result = $query
+    ->entityCondition('entity_type', 'taxonomy_term')
+    ->entityCondition('bundle', 'organizational_structure')
+    ->fieldCondition('field_taxonomy_dn', 'value', $item['parents'], 'IN', 0)
+    ->execute();
+    if(count($result)) {
+      //ok we've found some parents
+      $newterm->parent = array_keys($result['taxonomy_term']);
+    }
+  }
+  if(count($newterm->parent) < count($item['parents'])) {
+    /* parent element is not there: push it again to the queue */
+    $status = taxonomy_term_save($newterm);
+    if($status == SAVED_NEW) {
+      drupal_set_message("Created term but rescheduled for check: ".$item['dn']);
+    }
+    elseif($status == SAVED_UPDATED) {
+      drupal_set_message("Updated term but rescheduled for check: ".$item['dn']);
+    }
+    else {
+      drupal_set_message("Error: Could not add term (rescheduled for adding). ".$item['dn'], 'error');
+    }
+    $queue->createItem($item);
+  }
+  elseif(count($newterm->parent)) {
+    $status = taxonomy_term_save($newterm);
+    if($status == SAVED_NEW) {
+      drupal_set_message("Created new: ".$item['dn']);
+    }
+    elseif($status == SAVED_UPDATED) {
+      drupal_set_message("Updated term : ".$item['dn']);
+    }
+    else {
+      drupal_set_message("Error: Could not add term (rescheduled for adding). ".$item['dn'], 'error');
+      $queue->createItem($item);
+    }
+  }
+}
+
+/**
+ * Worker for group delete
+ */
+function _worker_delete_group($dns) {
+  $voc = taxonomy_vocabulary_machine_name_load('organizational_structure');
+  $terms = taxonomy_get_tree($voc->vid, 0, NULL, TRUE);
+  $query = new EntityFieldQuery();
+  $result = $query
+  ->entityCondition('entity_type', 'taxonomy_term')
+  ->entityCondition('bundle', 'organizational_structure')
+  ->fieldCondition('field_taxonomy_dn', 'value', $dns, 'NOT IN', 0)
+  ->execute();
+  foreach (array_keys($result['taxonomy_term']) as $term) {
+    taxonomy_term_delete($term);
+    $count++;
+  }
+  drupal_set_message("Deleted $count obsolete terms.");
+}
+
+/**
+ * Provisioning for the user at login
+ */
+function alingsasintra_ldap_user_edit_user_alter(&$edit, &$ldap_user, $ldap_server) {
+  $groups = array();
+  if(isset($ldap_user['attr']['groupmembership']['count']) && $ldap_user['attr']['groupmembership']['count'] > 0) {
+    for($i=0; isset($ldap_user['attr']['groupmembership'][$i]); $i++) {
+      $groups[] = array('value' => $ldap_user['attr']['groupmembership'][$i]);
+    }
+    $edit['field_ldap_grupper']['und'] = $groups;
+  }
+}
+
+function alingsasintra_user_login(&$edit, $account) {
+
+  global $user;
+  /* TODO: remove default role publicist and add it based on LDAP-attribute */
+  $key = array_search('publicist', $user->roles);
+  if ($key == FALSE) {
+    $roles = user_roles(TRUE);
+    $rid = array_search('publicist', $roles);
+    if ($rid != FALSE) {
+      $new_role[$rid] = 'publicist';
+      user_save($user, array('roles' => $new_role));
+    }
+  }
+
+  /* Add ldap groups to organizational structure */
+
+  if(isset($user->field_ldap_grupper['und']) && count($user->field_ldap_grupper['und'])) {
+    $terms = array();
+    foreach($user->field_ldap_grupper['und'] as $term) {
+      $terms[] = $term['value'];
+    }
+    $query = new EntityFieldQuery();
+    $entities = $query->entityCondition('entity_type', 'taxonomy_term')
+      ->entityCondition('bundle', 'organizational_structure')
+      ->fieldCondition('field_taxonomy_dn', 'value', $terms)
+      ->execute();
+    if (!empty($entities['taxonomy_term'])) {
+      $terms = array_keys($entities['taxonomy_term']);
+      foreach($terms as &$term) {
+        $term = array('tid' => $term);
+      }
+      $user->field_organizational_structure['und'] = $terms;
+      user_save($user);
+    }
+  }
+
+  /* TODO:Add own choosen groups to organizational structure */
+
+}
+
+/**
+ * user profile forms
+ */
+
+function alingsasintra_usercontact_form() {
+  $queue = DrupalQueue::get('addLdapGroupssdf');
+  //creating the form
+  drupal_set_title('Redigera dina kontaktuppgifter');
+  global $user;
+  $account = entity_metadata_wrapper('user', $user);
+  $form = array (
+      'user_email' => array (
+          '#type' => 'textfield',
+          '#title' => t('Email'),
+          '#default_value' => $account->field_user_email->value(),
+      ),
+      'user_phone' => array (
+          '#type' => 'textfield',
+          '#title' => t('Phone'),
+          '#default_value' => $account->field_user_phone->value(),
+      ),
+      'user_mobile' => array (
+          '#type' => 'textfield',
+          '#title' => t('Mobile'),
+          '#default_value' => $account->field_user_mobile->value(),
+      ),
+      'user_fax' => array (
+          '#type' => 'textfield',
+          '#title' => t('Fax'),
+          '#default_value' => $account->field_user_fax->value(),
+      ),
+      'user_address' => array (
+          '#type' => 'textarea',
+          '#title' => t('Address'),
+          '#default_value' => $account->field_user_address->value(),
+          '#rows' => 3
+      ),
+      'submit' => array (
+          '#type' => 'submit',
+          '#value' => t('Save'),
+      ),
+  );
+
+  return $form;
+}
+
+function alingsasintra_usercontact_form_validate($form, &$form_state){
+
+}
+
+function alingsasintra_usercontact_form_submit($form, &$form_state) {
+  global $user;
+  $account = entity_metadata_wrapper('user', $user);
+
+  $account->field_user_email->set($form_state['values']['user_email']);
+  $account->field_user_phone->set($form_state['values']['user_phone']);
+  $account->field_user_mobile->set($form_state['values']['user_mobile']);
+  $account->field_user_fax->set($form_state['values']['user_fax']);
+  $account->field_user_address->set($form_state['values']['user_address']);
+
+  $account->save();
+
+  drupal_set_message(t('Your contact information was saved.'));
+}
+
+/**
+ * Favorites form
+ */
+
+function alingsasintra_userfavorites_form() {
+  //creating the form
+  drupal_set_title('Mina favoriter');
+  global $user;
+  $account = entity_metadata_wrapper('user', $user);
+
+  $form = array();
+
+  $form['#prefix'] = <<<EOF
+<p class="intro">
+	Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed dapibus risus. Sed mauris enim, molestie et mattis non, iaculis vitae erat. Sed mauris enim et mattis iaculis vitae erat.
+</p>
+<div class="m my-news my-fav">
+	<div class="m-h">
+    	<h2>Redigera favoriter</h2>
+    </div>
+    <div class="m-c">
+    	<ul>
+EOF;
+  $form['#suffix'] = <<<EOF
+       </li>
+      </ul>
+    </div>
+</div>
+<script type="text/javascript">
+jQuery(function(){
+	jQuery('.my-fav button.delete').click(function(e){
+	  var bookmarkid = jQuery(this).parent().attr('id');
+		jQuery.getJSON('/bookmark/' + bookmarkid + '/delete', function(data) {
+		  jQuery('#' + bookmarkid).remove();
+		});
+	});
+});
+</script>
+EOF;
+
+
+  foreach ($account->field_bookmarks->getIterator() as $delta => $item) {
+    $form['#prefix'] .= '<li id="item-' . $delta . '" class="cf"><a href="' . $item->url->value() . '">' . $item->title->value() . '</a><button class="delete">Ta bort favorit</button></li>';
+  }
+  $form['#prefix'] .= '<li class="cf">';
+
+  $form['new_item_title'] = array (
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#required' => TRUE,
+  );
+  $form['new_item_url'] = array (
+    '#type' => 'textfield',
+    '#title' => t('URL'),
+    '#required' => TRUE,
+  );
+  $form['submit'] = array (
+      '#type' => 'submit',
+      '#value' => t('Add'),
+  );
+
+  return $form;
+}
+
+function alingsasintra_userfavorites_form_validate($form, &$form_state){
+
+}
+
+function alingsasintra_userfavorites_form_submit($form, &$form_state) {
+  global $user;
+  $account = entity_metadata_wrapper('user', $user);
+
+  $account->field_bookmarks[] = array('title' => $form_state['values']['new_item_title'], 'url' => $form_state['values']['new_item_url']);
+
+  $account->save();
+
+  drupal_set_message(t('Your favorites were saved successfully.'));
+}
+
+/**
+ * Newsfeed form
+ */
+
+function alingsasintra_usernewsfeed_form() {
+  //creating the form
+  drupal_set_title('Redigera nyhetsflöde');
+  global $user;
+  $account = entity_metadata_wrapper('user', $user);
+
+  $form = array();
+
+  $form['#prefix'] = <<<EOF
+<p class="intro">
+	Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed dapibus risus. Sed mauris enim, molestie et mattis non, iaculis vitae erat. Sed mauris enim et mattis iaculis vitae erat.
+</p>
+<div class="m my-news my-fav">
+	<div class="m-h">
+    	<h2>Fasta nyhetsflöde</h2>
+    </div>
+    <div class="m-c">
+    	<ul>
+EOF;
+  $form['#suffix'] = <<<EOF
+
+
+</div>
+EOF;
+
+
+  foreach ($account->field_organizational_structure->getIterator() as $delta => $item) {
+    $form['#prefix'] .= '<li id="item-' . $delta . '" class="cf">' . $item->name->value(). '<button class="locked">Spärrad</button></li>';
+  }
+
+
+  foreach ($account->field_user_customtags->getIterator() as $delta => $item) {
+    $items[] = array('tid' => $item->tid->value());
+    $default[] = $item->tid->value();
+  }
+
+  $form['#prefix'] .= '</ul></div>';
+  $form['field_user_customtags'] = array(
+    '#type' => 'hidden',
+    '#title' => t('Egna nyhetsflöde'),
+    '#required' => FALSE,
+    '#default_value' => join(',', $default),
+  );
+  $form_state = array();
+
+  $form['field_user_customtags'] = term_reference_menu_field_widget_form(
+      $form,
+      $form_state,
+      array('field_name' => 'field_user_customtags'),
+      array(), LANGUAGE_NONE, $items, NULL, $form['field_user_customtags']);
+
+  $form['submit'] = array (
+      '#type' => 'submit',
+      '#value' => t('Save'),
+  );
+  $form['cancel'] = array (
+      '#type' => 'button',
+      '#value' => t('Cancel'),
+  );
+
+  return $form;
+}
+
+function alingsasintra_usernewsfeed_form_validate($form, &$form_state){
+
+}
+
+function alingsasintra_usernewsfeed_form_submit($form, &$form_state) {
+  global $user;
+  $items = array();
+  $account = entity_metadata_wrapper('user', $user);
+
+  foreach($form_state['values']['field_user_customtags'] as $item) {
+    $items[] = taxonomy_term_load($item['tid']);
+  }
+  $account->field_user_customtags->set($items);
+  $account->save();
+  drupal_set_message(t('Your settings have been saved successfully.'));
+}
+
+/**
+ * Implementation of hook_form_validate().
+ */
+function alingsasintra_node_validate($node, $form, &$form_state) {
+  if(isset($form['#form_id']) && $form['#form_id'] == 'news_node_form') {
+    if($form_state['values']['promote'] == 1) {
+      $form_state['values']['field_organizational_structure']['und'] = array();
+    }
+  }
+  if(isset($form['#form_id']) && $form['#form_id'] == 'verktyg_node_form') {
+    if($form_state['values']['promote'] == 1) {
+      $form_state['values']['field_organizational_structure']['und'] = array();
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function alingsasintra_form_alter(&$form, &$form_state, $form_id) {
+
+  //remove all vertical tabs from node forms.
+  if (strstr($form_id, '_node_form') == '_node_form') {
+    array_walk_recursive($form, '_alingsasintra_replace_vertical_tabs_to_fieldsets');
+  }
+
+  //customize news_node_form
+  switch($form_id) {
+
+    case 'page_node_form':
+      if($form['#action'] == '/node/add/page' && $form_state['submitted'] == FALSE){
+        $form['fmenu']['menu_name']['#default_value'] = 'main-menu';
+        $form['fmenu']['#suffix'] = <<<EOF
+        <script type="text/javascript">jQuery(function(){jQuery('#edit-fmenu-menu-name').change();});</script>
+EOF;
+      }
+      unset($form['options']['#group']);
+      $form['options']['#weight'] = 20;
+      $form['options']['sticky']['#access'] = FALSE;
+      $form['options']['promote']['#access'] = FALSE;
+      unset($form['fmenu']['#group']);
+      $form['fmenu']['#weight'] = 21;
+      $form['additional_settings']['#title'] = t('Additional settings');
+      $form['path']['#collapsed'] = TRUE;
+      $form['options']['#collapsed'] = FALSE;
+      if(!isset($form['options']['field_organizational_structure'])) {
+        $form['options']['field_organizational_structure'] = $form['field_organizational_structure'];
+        $form['options']['field_organizational_structure']['#weight'] = 15;
+        unset($form['field_organizational_structure']);
+      }
+      $form['field_teaser']['und']['#collapsible'] = TRUE;
+      //$form['#attached']['js'][] = drupal_get_path('module', 'alingsasintra') . '/unlimited-field-delete.js';
+      break;
+
+    case 'notification_node_form':
+      unset($form['options']['#group']);
+      $form['options']['#weight'] = 20;
+      $form['options']['sticky']['#access'] = FALSE;
+      $form['options']['promote']['#access'] = FALSE;
+      $form['field_organizational_structure']['#access'] = FALSE;
+      unset($form['fmenu']);
+      $form['additional_settings']['#title'] = t('Additional settings');
+      $form['path']['#collapsed'] = TRUE;
+      $form['options']['#collapsed'] = FALSE;
+      if(!isset($form['options']['field_organizational_structure'])) {
+        $form['options']['field_organizational_structure'] = $form['field_organizational_structure'];
+        $form['options']['field_organizational_structure']['#weight'] = 15;
+        unset($form['field_organizational_structure']);
+      }
+
+      if(isset($form['field_publishduration'])) {
+        $form['options']['field_publishduration'] = $form['field_publishduration'];
+        $form['options']['field_publishduration']['#weight'] = 20;
+        unset($form['field_publishduration']);
+      }
+      break;
+
+    case 'news_node_form':
+      unset($form['options']['#group']);
+      $form['options']['#weight'] = 20;
+      $form['options']['sticky']['#access'] = FALSE;
+      $form['additional_settings']['#title'] = t('Additional settings');
+      $form['path']['#collapsed'] = TRUE;
+      $form['options']['#collapsed'] = FALSE;
+      $form['options']['status']['#weight'] = 0;
+      $form['options']['promote']['#weight'] = 14;
+      $form['options']['promote']['#title'] = 'Gemensam nyhet för hela kommunen';
+      unset($form['options']['sticky']);
+
+      if(!isset($form['options']['field_organizational_structure'])) {
+        $form['options']['field_organizational_structure'] = $form['field_organizational_structure'];
+        $form['options']['field_organizational_structure']['#weight'] = 19;
+        $form['options']['field_organizational_structure']['#suffix'] = <<<EOF
+<script type="text/javascript">
+  jQuery(function(){
+    if(jQuery('#edit-promote').attr('checked')){
+      jQuery('#edit-field-organizational-structure').hide();
+    }
+    else {
+      jQuery('#edit-field-organizational-structure').show();
+    }
+	  jQuery('#edit-promote').click(function() {
+	    if(jQuery('#edit-promote').attr('checked')){
+	      jQuery('#edit-field-organizational-structure').slideUp();
+	    }
+	    else {
+	      jQuery('#edit-field-organizational-structure').slideDown();
+	    }
+    });
+  });
+</script>
+EOF;
+        unset($form['field_organizational_structure']);
+      }
+
+      if(isset($form['field_publishdate'])) {
+        $form['options']['field_publishdate'] = $form['field_publishdate'];
+        $form['options']['field_publishdate']['#weight'] = 20;
+        unset($form['field_publishdate']);
+      }
+      if(isset($form['field_unpublishdate'])) {
+        $form['options']['field_unpublishdate'] = $form['field_unpublishdate'];
+        $form['options']['field_unpublishdate']['#weight'] = 21;
+        unset($form['field_unpublishdate']);
+      }
+      break;
+
+      case 'verktyg_node_form':
+        unset($form['options']['#group']);
+        $form['options']['#weight'] = 20;
+        $form['options']['sticky']['#access'] = FALSE;
+        $form['additional_settings']['#title'] = t('Additional settings');
+        $form['path']['#collapsed'] = TRUE;
+        $form['options']['#collapsed'] = FALSE;
+        $form['options']['status']['#weight'] = 0;
+        $form['options']['promote']['#weight'] = 14;
+        $form['options']['promote']['#title'] = 'Gemensamt verktyg för hela kommunen';
+        if(!isset($form['options']['field_organizational_structure'])) {
+          $form['options']['field_organizational_structure'] = $form['field_organizational_structure'];
+          $form['options']['field_organizational_structure']['#weight'] = 19;
+          $form['options']['field_organizational_structure']['#suffix'] = <<<EOF
+<script type="text/javascript">
+  jQuery(function(){
+    if(jQuery('#edit-promote').attr('checked')){
+      jQuery('#edit-field-organizational-structure').hide();
+    }
+    else {
+      jQuery('#edit-field-organizational-structure').show();
+    }
+	  jQuery('#edit-promote').click(function() {
+	    if(jQuery('#edit-promote').attr('checked')){
+	      jQuery('#edit-field-organizational-structure').slideUp();
+	    }
+	    else {
+	      jQuery('#edit-field-organizational-structure').slideDown();
+	    }
+    });
+  });
+</script>
+EOF;
+          unset($form['field_organizational_structure']);
+        }
+        break;
+
+    case 'event_node_form':
+      unset($form['options']['#group']);
+      $form['options']['#weight'] = 20;
+      $form['options']['sticky']['#access'] = FALSE;
+      $form['additional_settings']['#title'] = t('Additional settings');
+      $form['path']['#collapsed'] = TRUE;
+      $form['options']['#collapsed'] = FALSE;
+      $form['options']['status']['#weight'] = 0;
+      $form['options']['promote']['#weight'] = 14;
+      $form['options']['promote']['#title'] = 'Gemensamt evenemang för hela kommunen';
+      unset($form['options']['sticky']);
+
+      if(!isset($form['options']['field_organizational_structure'])) {
+        $form['options']['field_organizational_structure'] = $form['field_organizational_structure'];
+        $form['options']['field_organizational_structure']['#weight'] = 19;
+        $form['options']['field_organizational_structure']['#suffix'] = <<<EOF
+<script type="text/javascript">
+  jQuery(function(){
+    if(jQuery('#edit-promote').attr('checked')){
+      jQuery('#edit-field-organizational-structure').hide();
+    }
+    else {
+      jQuery('#edit-field-organizational-structure').show();
+    }
+	  jQuery('#edit-promote').click(function() {
+	    if(jQuery('#edit-promote').attr('checked')){
+	      jQuery('#edit-field-organizational-structure').slideUp();
+	    }
+	    else {
+	      jQuery('#edit-field-organizational-structure').slideDown();
+	    }
+    });
+  });
+</script>
+EOF;
+        unset($form['field_organizational_structure']);
+      }
+      break;
+
+    case 'user_profile_form':
+      if(isset($form['field_user_customtags'])){
+        $form['field_user_customtags']['#access'] = false;
+      }
+      break;
+
+    case 'user_login':
+        $form['name']['#attributes']['autocapitalize'] = "off";
+        $form['name']['#attributes']['autocorrect'] = "off";
+        $form['pass']['#attributes']['autocapitalize'] = "off";
+        $form['pass']['#attributes']['autocorrect'] = "off";
+      break;
+
+  }
+
+}
+
+
+/*
+ * Add user default terms to create-news-form
+ */
+function alingsasintra_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
+
+
+}
+
+
+/**
+ * Disable Vertical Tabs
+ *
+ * @param $item
+ * @param $key
+ */
+function _alingsasintra_replace_vertical_tabs_to_fieldsets(&$item, $key) {
+
+  if ($item == 'vertical_tabs' && $key == '#type') {
+    $item = 'fieldset';
+  }
+
+}
+
+
+function alingsasintra_block_info() {
+  $blocks = array();
+  $blocks['custom_search'] = array(
+    'info' => t('Sökbox'),
+    'status' => FALSE,
+    'weight' => 0,
+  );
+  $blocks['local_tasks'] = array(
+      'info' => t('Sid aktioner'),
+      'status' => 1,
+      'region' => 'sidebar_third',
+      'weight' => -10,
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'pages' => '<front>',
+  );
+  $blocks['news_subnav'] = array(
+      'info' => t('News navigation'),
+      'status' => FALSE,
+      'weight' => 0,
+  );
+  $blocks['back_subnav'] = array(
+      'info' => t('Tillbaka länken i Navigation'),
+      'status' => FALSE,
+      'weight' => 0,
+  );
+  return $blocks;
+}
+
+function alingsasintra_block_view($delta = '') {
+  switch ($delta) {
+    case 'custom_search':
+      $block['content'] = _alingsasintra_block_searchbox();
+      return $block;
+      break;
+    case 'news_subnav':
+      $block['content'] = _alingsasintra_block_newsnav();
+      return $block;
+      break;
+    case 'local_tasks':
+      $block['content'] = _alingsasintra_block_localtabs();
+      return $block;
+      break;
+    case 'back_subnav':
+      $block['content'] = _alingsasintra_block_backnav();
+      return $block;
+      break;
+  }
+}
+
+function _alingsasintra_block_searchbox() {
+  $output = '';
+  //$form = drupal_get_form('search_form');
+  $output = <<<EOL
+      <form method="get" action="/sok" id="search-form" class="header-search search" role="search">
+						<div>
+							<label for="edit-keys" class="structural">Sök på Intranätet</label>
+							<input type="search" id="edit-keys" name="search_api_views_fulltext" placeholder="Sök information, personer, dokument etc..." />
+							<input type="image" id="search-button" src="/sites/all/themes/alingsasintra/gui/i/search-button.png" alt="Go" />
+						</div>
+					</form>
+EOL;
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_block_backnav() {
+
+  $output = <<<EOL
+   		  <a href="/" class="back">Tillbaka</a>
+EOL;
+	return array('#markup' => $output);
+}
+
+function _alingsasintra_block_newsnav() {
+  $items = array();
+  $menu = array();
+  if(arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
+    $node = node_load(arg(1));
+    if(!$node->promote && ($node->type == 'news' || $node->type == 'verktyg') && isset($node->field_organizational_structure['und']) && count($node->field_organizational_structure['und'])) {
+      foreach($node->field_organizational_structure['und'] as $item) {
+        $items[] = '<li><a href="/nyheter-term/'.$item['taxonomy_term']->tid.'">'.$item['taxonomy_term']->name.'</a></li>';
+      }
+    }
+    if(count($items)) {
+      $items = join('', $items);
+      $items = <<<EOL
+          <li class="pub-unit">
+						<ul class="pub-group">
+							{$items}
+						</ul>
+					</li>
+EOL;
+    }
+    else {
+      $items = '';
+    }
+  }
+
+  $author = user_load($node->uid);
+  $firstname = $node->name;
+  $lastname = '';
+  if(isset($author->field_firstname['und'][0]['safe_value']) && $author->field_firstname['und'][0]['safe_value']) {
+    $firstname = $author->field_firstname['und'][0]['safe_value'];
+  }
+  if(isset($author->field_lastname['und'][0]['safe_value']) && $author->field_lastname['und'][0]['safe_value']) {
+    $lastname = $author->field_lastname['und'][0]['safe_value'];
+  }
+  $name = $firstname.' '.$lastname;
+  $uid = $node->uid;
+  $date = date('d M Y', $node->created);
+  $output = <<<EOL
+   		  <a href="/" class="back">Tillbaka</a>
+				<ul class="pub-meta">
+					<li class="pub-name"><strong>Publicerad av:</strong><br/><a href="/user/{$uid}">{$name}</a></li>
+					<li class="pub-date"><strong>Datum:</strong> {$date}</li>
+					{$items}
+				</ul>
+EOL;
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_block_localtabs() {
+  $output = '';
+  $tasks = menu_local_tabs();
+  $menu = '';
+  if($tasks['#primary']) {
+    unset($tasks['#primary'][0]);
+  }
+  $item = menu_get_item('node/add/news');
+  if ($item['access']) {
+    $item['title'] = 'Skapa nyhet';
+    $tasks['#primary'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+    );
+  }
+  $item = menu_get_item('node/add/event');
+  if ($item['access']) {
+    $item['title'] = 'Skapa aktivitet';
+    $tasks['#primary'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+    );
+  }
+  $item = menu_get_item('node/add/advert');
+  if ($item['access']) {
+    $item['title'] = 'Skapa annons';
+    $tasks['#primary'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+    );
+  }
+  $item = menu_get_item('node/add/page');
+  if ($item['access']) {
+    $item['title'] = 'Skapa sida';
+    $tasks['#primary'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+    );
+  }
+  $item = menu_get_item('node/add/verktyg');
+  if ($item['access']) {
+    $item['title'] = 'Skapa verktygslänk';
+    $tasks['#primary'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+    );
+  }
+  $item = menu_get_item('node/add/notification');
+  if ($item['access']) {
+    $item['title'] = 'Skapa informationsmeddelande';
+    $tasks['#primary'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+    );
+  }
+  if($tasks['#primary']) {
+    $menu = render($tasks);
+    $output = <<<EOL
+<div id="edit" class="m toggle-module toggle cf">
+	<div class="m-h cf">
+		<span class="toggle-icon edit"></span>
+		<h2>Publicera innehåll</h2>
+	</div>
+	<div class="m-c cf">
+		<div class="toggle-list">
+			<ul>
+				{$menu}
+			</ul>
+		</div>
+	</div>
+</div>
+EOL;
+  }
+  return array('#markup' => $output);
+}

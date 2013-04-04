@@ -1,0 +1,60 @@
+<?php
+
+function alingsasintra_bookmarks_block_info() {
+  $blocks = array();
+  $blocks['sidebar_bookmarks'] = array(
+      'info' => t('Användernas Favoriter'),
+      'status' => 1,
+      'region' => 'sidebar_third',
+      'weight' => 0,
+      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+      'pages' => '',
+  );
+  return $blocks;
+}
+
+function alingsasintra_bookmarks_block_view($delta = '') {
+  switch ($delta) {
+    case 'sidebar_bookmarks':
+      $block['content'] = _alingsasintra_block_sidebar_bookmarks();
+      return $block;
+      break;
+  }
+}
+
+function _alingsasintra_block_sidebar_bookmarks() {
+  global $user;
+  $user = user_load($user->uid);
+  $bookmarks = array();
+  if(isset($user->field_bookmarks[LANGUAGE_NONE]) && count($user->field_bookmarks[LANGUAGE_NONE])) {
+    foreach($user->field_bookmarks[LANGUAGE_NONE] as $bookmark) {
+      if($bookmark['url']) {
+        $target = '';
+        if(isset($bookmark['attributes']['target']) && $bookmark['attributes']['target']){
+          $target = 'target="'.$bookmark['attributes']['target'].'"';
+        }
+        $bookmark['url'] = (strstr($bookmark['url'], 'http') === false) ? "/".$bookmark['url'] : $bookmark['url'];
+        $bookmarks[] = '<li><a href="'.$bookmark['url'].'" '.$target.'>'.$bookmark['title'].'</a></li>';
+      }
+    }
+  }
+  else {
+    $bookmarks[] = '<li>Ingen favoriter hittades.</li>';
+  }
+  $bookmarks = join("\n", $bookmarks);
+  $output = <<<EOL
+      <div id="favorite" class="m toggle-module toggle cf">
+      	<div class="m-h cf">
+      		<span class="toggle-icon favorite"></span>
+      		<h2>Mina favoritsidor</h2>
+      	</div>	<div class="m-c cf">
+      		<div class="toggle-list">
+      			<ul>
+      				{$bookmarks}
+      			</ul>
+      		</div>
+      	</div>
+      </div>
+EOL;
+  return array('#markup' => $output);
+}

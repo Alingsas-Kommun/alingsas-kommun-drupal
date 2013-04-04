@@ -1,0 +1,6 @@
+name = Bookmark function
+description = Bookmark pages to peronal favorites
+package = Alingsås Intranet
+core = 7.x
+dependencies[] = alingsasintra
+dependencies[] = block

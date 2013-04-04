@@ -1,0 +1,25 @@
+From 0400675339501faed2777e2f5021eb50edb0a260 Mon Sep 17 00:00:00 2001
+From: Carsten Nielsen <carsten@redpill-linpro.com>
+Date: Mon, 17 Dec 2012 11:50:01 +0100
+Subject: [PATCH] Fix menuux bug.
+
+---
+ www/sites/all/modules/menuux/menuux.module | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/www/sites/all/modules/menuux/menuux.module b/www/sites/all/modules/menuux/menuux.module
+index 7ca7172..e0f24fd 100755
+--- a/www/sites/all/modules/menuux/menuux.module
++++ b/www/sites/all/modules/menuux/menuux.module
+@@ -91,7 +91,7 @@ function menuux_node_insert(&$node) {
+ /**
+  * Implementation of hook_node_prepare
+  */
+-function menuux_node_prepare(&$node) {
++function menuux_node_prepare($node) {
+   if (isset($node->menu)) {
+     $node->fmenu = array();
+     if ($node->menu['mlid'] > 0) {
+-- 
+1.8.0
+

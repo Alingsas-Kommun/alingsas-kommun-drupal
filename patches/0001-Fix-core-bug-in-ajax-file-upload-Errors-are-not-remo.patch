@@ -1,0 +1,28 @@
+From e15a2f3987f25a654fa0fc844411afbf225c8d26 Mon Sep 17 00:00:00 2001
+From: Carsten Nielsen <carsten@redpill-linpro.com>
+Date: Fri, 25 Jan 2013 11:13:09 +0100
+Subject: [PATCH] Fix core bug in ajax file upload: Errors are not removed when
+ resubmitting.
+
+---
+ www/modules/file/file.module | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/www/modules/file/file.module b/www/modules/file/file.module
+index 3d351fa..b53c88d 100644
+--- a/www/modules/file/file.module
++++ b/www/modules/file/file.module
+@@ -279,8 +279,8 @@ function file_ajax_upload() {
+   else {
+     $form['#suffix'] .= '<span class="ajax-new-content"></span>';
+   }
+-
+-  $output = theme('status_messages') . drupal_render($form);
++  $form['#prefix'] .= theme('status_messages');
++  $output =  drupal_render($form);
+   $js = drupal_add_js();
+   $settings = call_user_func_array('array_merge_recursive', $js['settings']['data']);
+ 
+-- 
+1.8.0.3
+
