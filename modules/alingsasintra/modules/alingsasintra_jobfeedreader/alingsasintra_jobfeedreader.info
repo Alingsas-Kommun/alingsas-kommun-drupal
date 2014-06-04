@@ -1,0 +1,7 @@
+name = Alingsas Jobfeed Fetcher
+description = Aggregates jobs from the Aditrorecruit feed.
+package = Feeds
+core = 7.x
+php = 5.2
+
+dependencies[] = feeds

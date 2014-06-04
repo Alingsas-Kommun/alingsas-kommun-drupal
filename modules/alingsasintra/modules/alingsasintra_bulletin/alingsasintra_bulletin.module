@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Bulltinboard feature.
+ */
+
+include_once 'alingsasintra_bulletin.features.inc';

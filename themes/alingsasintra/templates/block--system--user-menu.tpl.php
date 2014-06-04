@@ -26,10 +26,11 @@
 			<ul class="menu">
 				<li class="first leaf"><?php print $vars['user_ou'] ?></li>
 			</ul>
-			<p id="#user-message" class="message" style="clear:both;">&nbsp;</p>
+			<!-- <p id="#user-message" class="message" style="clear:both;">&nbsp;</p> -->
 		</div>
 	</div>
 </div>
+<!-- deactivate until vision is working properly
 <script type="text/javascript">
 jQuery(function(){
 	var userstatustop = [];
@@ -59,4 +60,4 @@ jQuery(function(){
 	  jQuery('.user-profile .message').html(userstatustop.join(', '));
 	});
 });
-</script>
+</script> -->

@@ -1,0 +1,104 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions
+ *
+ */
+
+
+/**
+ * Implementation of hook_enable().
+ */
+function alingsasintra_booking_enable() {
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function alingsasintra_booking_disable() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function alingsasintra_booking_uninstall() {
+  $ret = array();
+  return $ret;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function alingsasintra_booking_install() {
+  $ret = array();
+  return $ret;
+}
+
+/**
+ * Implements hook_schema().
+ */
+function alingsasintra_booking_schema() {
+  $schema['alingsasintra_booking_participants'] = array(
+      'description' => 'Table for users/people who has booked an event.',
+      'fields' => array(
+          'bid' => array(
+              'description' => 'The booking id',
+              'type' => 'serial',
+              'unsigned' => TRUE,
+              'not null' => TRUE,
+          ),
+          'nid' => array(
+              'description' => 'The {node}.nid this record tracks.',
+              'type' => 'int',
+              'unsigned' => TRUE,
+              'not null' => TRUE,
+              'default' => 0,
+          ),
+          'uid' => array(
+              'type' => 'int',
+              'not null' => FALSE,
+              'unsigned' => TRUE,
+              'default' => 0,
+              'description' => 'System-id of user if present.',
+          ),
+          'realname' => array(
+            'type' => 'varchar',
+            'length' => 255,
+            'not null' => TRUE,
+            'default' => '',
+            'description' => 'The name of the person.',
+          ),
+          'email' => array(
+              'type' => 'varchar',
+              'length' => 255,
+              'default' => '',
+              'description' => 'The email-address of the person.',
+          ),
+          'bookedby' => array(
+              'type' => 'int',
+              'not null' => TRUE,
+              'unsigned' => TRUE,
+              'default' => 0,
+              'description' => 'Id of user who did booking.',
+          ),
+          'bookingtimestamp' => array(
+              'type' => 'int',
+              'not null' => TRUE,
+              'unsigned' => TRUE,
+              'default' => 0,
+              'description' => 'Timestamp of booking.',
+          ),
+          'bookingdata' => array(
+              'type' => 'text',
+              'description' => 'Additional booking data.',
+          ),
+      ),
+      'indexes' => array(
+          'uid_nid' => array('uid', 'nid'),
+          'nid' => array('nid'),
+          'uid' => array('uid'),
+      ),
+      'primary key' => array('bid'),
+  );
+  return $schema;
+}

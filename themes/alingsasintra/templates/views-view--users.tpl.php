@@ -88,7 +88,7 @@
   <?php endif; ?>
 
 </div><?php /* class view */ ?>
-<script type="text/javascript">
+<!-- <script type="text/javascript">
 
 jQuery(function(){
 	jQuery('.user-status').each(function(){
@@ -107,4 +107,4 @@ jQuery(function(){
 	});
 });
 
-</script>
+</script> -->

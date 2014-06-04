@@ -12,7 +12,7 @@
     </div>
     <?php endif; ?>
 
-  	<?php print render($content['body']); ?>
+  	<?php print render($content); ?>
 
   	<?php if((isset($content['field_contact_user']) && $content['field_contact_user']) || (isset($content['field_contact_name']) && $content['field_contact_name'])): ?>
   	<div class="m contact">

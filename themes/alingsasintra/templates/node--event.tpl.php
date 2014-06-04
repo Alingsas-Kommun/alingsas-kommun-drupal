@@ -6,6 +6,12 @@
     </p>
     <?php endif; ?>
 
+    <?php if(isset($content['field_event_location']) && $content['field_event_location']): ?>
+    <p class="location">
+      Plats: <?php print $content['field_event_location']['#items'][0]['value']; ?>
+    </p>
+    <?php endif; ?>
+
     <?php if(isset($content['field_introduction']) && $content['field_introduction']): ?>
     <p class="intro">
       <?php print nl2br($content['field_introduction']['#items'][0]['safe_value']); ?>
@@ -19,6 +25,23 @@
     <?php endif; ?>
 
   	<?php print render($content['body']); ?>
+
+  	<?php if(isset($content['field_event_related_information']) && $content['field_event_related_information']): ?>
+  	<div class="m related-files">
+  	  <div class="m-h">
+      	<h2>Relaterad information</h2>
+      </div>
+      <div class="m-c">
+      	<?php print render($content['field_event_related_information']); ?>
+      </div>
+    </div>
+    <?php endif; ?>
+
+  	<?php if(isset($content['booking_link']) && $content['booking_link']): ?>
+    <div class="nix">
+      <?php print render($content['booking_link']); ?>
+    </div>
+    <?php endif; ?>
 
   	<?php if((isset($content['field_contact_user']) && $content['field_contact_user']) || (isset($content['field_contact_name']) && $content['field_contact_name'])): ?>
   	<div class="m contact">
@@ -46,32 +69,20 @@
     </div>
     <?php endif; ?>
 
-  	<?php if(isset($content['field_url']) && $content['field_url']): ?>
-  	<div class="m related-files">
-  	  <div class="m-h">
-      	<h2>Relaterad information</h2>
-      </div>
-      <div class="m-c">
-      	<?php print render($content['field_url']); ?>
-      </div>
-    </div>
-    <?php endif; ?>
-
-
     <div class="main-content-meta">
-  		<p>Publicerad av: <?php print $name; ?>den <span> <?php print $date; ?></span></p>
+  		<p>Publicerad av: <?php print $name; ?> senast uppdaterad <span> <?php print format_date($node->changed); ?></span></p>
   	</div>
 
   </div>
 
-<?php if(isset($content['field_general_information']) && $content['field_general_information']): ?>
+<?php if(isset($content['field_event_general_information']) && $content['field_event_general_information']): ?>
 </div>
 <div id="external-information" class="m related-info toggle">
 	<div class="m-h">
     <h2>Allmän information</h2>
   </div>
   <div class="m-c">
-      <?php print render($content['field_general_information']); ?>
+      <?php print render($content['field_event_general_information']); ?>
   </div>
 </div>
 <div>

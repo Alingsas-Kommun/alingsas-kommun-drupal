@@ -1,12 +1,3 @@
-<?php
-
-$search = '';
-if($_GET['search_api_views_fulltext']) {
-  $search = "?search_api_views_fulltext=" . $_GET['search_api_views_fulltext'];
-}
-$search_person = "<a class=\"button\" href=\"/sok-anvandare$search\">Sök person</a>";
-
-?>
 <?php if (!empty($q)): ?>
   <?php
     // This ensures that, if clean URLs are off, the 'q' is added first so that
@@ -38,31 +29,8 @@ $search_person = "<a class=\"button\" href=\"/sok-anvandare$search\">Sök person
         <?php endif; ?>
       </div>
     <?php endforeach; ?>
-    <?php if (!empty($sort_by)): ?>
-      <div class="views-exposed-widget views-widget-sort-by">
-        <?php print $sort_by; ?>
-      </div>
-      <div class="views-exposed-widget views-widget-sort-order">
-        <?php print $sort_order; ?>
-      </div>
-    <?php endif; ?>
-    <?php if (!empty($items_per_page)): ?>
-      <div class="views-exposed-widget views-widget-per-page">
-        <?php print $items_per_page; ?>
-      </div>
-    <?php endif; ?>
-    <?php if (!empty($offset)): ?>
-      <div class="views-exposed-widget views-widget-offset">
-        <?php print $offset; ?>
-      </div>
-    <?php endif; ?>
     <div class="views-exposed-widget views-submit-button">
-      <?php print $button; ?> <?php print $search_person; ?>
+      <?php print $button; ?>
     </div>
-    <?php if (!empty($reset_button)): ?>
-      <div class="views-exposed-widget views-reset-button">
-        <?php print $reset_button; ?>
-      </div>
-    <?php endif; ?>
   </div>
 </div>

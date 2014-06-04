@@ -1,0 +1,839 @@
+<?php
+
+/**
+ * Implements hook_menu
+ */
+function alingsasintra_booking_menu() {
+  $items['booking/%/participant/add'] = array(
+      'page callback' => '_alingsasintra_booking_participant_add',
+      'page arguments' => array(1),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/%/participants'] = array(
+      'page callback' => '_alingsasintra_booking_participants',
+      'page arguments' => array(1),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/%/participants/download'] = array(
+      'page callback' => '_alingsasintra_booking_participants_download',
+      'page arguments' => array(1),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/%/participants/mail'] = array(
+      'page callback' => '_alingsasintra_booking_mail',
+      'page arguments' => array(1),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/%/participant/%/view'] = array(
+      'page callback' => '_alingsasintra_booking_participant_view',
+      'page arguments' => array(1,3),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/%/participant/%/delete'] = array(
+      'page callback' => '_alingsasintra_booking_participant_delete',
+      'page arguments' => array(1,3),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/%/participant/%/edit'] = array(
+      'page callback' => '_alingsasintra_booking_participant_edit',
+      'page arguments' => array(1,3),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/%/mybookedparticipants'] = array(
+      'page callback' => '_alingsasintra_booking_mybookedparticipants',
+      'page arguments' => array(1),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/mybookings'] = array(
+      'page callback' => '_alingsasintra_booking_mybookings',
+      'page arguments' => array(),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['booking/mymanagedevents'] = array(
+      'page callback' => '_alingsasintra_booking_mymanagedevents',
+      'page arguments' => array(),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_node_view
+ */
+function alingsasintra_booking_node_view($node, $view_mode, $langcode) {
+  if ($node->type == 'event' && $view_mode == 'full') {
+    //count bookings
+    /*$result = db_query('SELECT b.bid FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid', array(':nid' => $node->nid));
+    $booking_full = $result->rowCount() >= $node->field_max_participants[LANGUAGE_NONE][0]['value'] ? true : false;
+    $booking_state = ($node->field_max_participants[LANGUAGE_NONE][0]['value']-$result->rowCount()).' lediga platser kvar av '.$node->field_max_participants[LANGUAGE_NONE][0]['value'];
+    $output = '';
+    if(isset($node->field_bookable[LANGUAGE_NONE][0]['value']) && $node->field_bookable[LANGUAGE_NONE][0]['value'] == 1) {
+      $output .= '<div>';
+      if($booking_full) {
+        $output .= t('This event is fully booked.').' '.$booking_state;
+      }
+      else {
+        $output .= t('This event is bookable.').' '.$booking_state;
+        $output .= '<a href="'.url('booking/'.$node->nid.'/participant/add').'" class="button">'.t('Register').'</a>';
+      }
+
+      if($result->rowCount() > 0) {
+        $output .= '<a href="'.url('booking/'.$node->nid.'/participants').'" class="button">'.t('View participants').'</a>';
+      }
+
+      $output .= '</div>';
+      $node->content['booking_link'] = array(
+          '#markup' => $output,
+          '#weight' => 100,
+      );
+    }*/
+  }
+}
+
+/**
+ * Booking pages
+ */
+function _alingsasintra_booking_participant_add($nid) {
+  $node = node_load($nid);
+  $output = '';
+
+  drupal_set_title(t('Register participants'));
+  $result = db_query('SELECT b.bid FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid', array(':nid' => $node->nid));
+  $booking_full = $result->rowCount() >= $node->field_max_participants[LANGUAGE_NONE][0]['value'] ? true : false;
+  if(!$booking_full) {
+    $output .= render(drupal_get_form(alingsasintra_booking_form, array('nid' => $nid)));
+  }
+
+  return $output;
+}
+
+function _alingsasintra_booking_mail($nid) {
+  $node = node_load($nid);
+  $output = '';
+
+  drupal_set_title(t('Send mail to participants'));
+  $result = db_query('SELECT b.bid FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid', array(':nid' => $node->nid));
+  $booking_full = $result->rowCount() >= $node->field_max_participants[LANGUAGE_NONE][0]['value'] ? true : false;
+  $output .= render(drupal_get_form(alingsasintra_booking_mail_form, array('nid' => $nid)));
+
+  return $output;
+}
+
+function _alingsasintra_booking_participants_download($nid) {
+  global $user;
+  $node = node_load($nid);
+  $title = $node->title;
+  $field = field_get_items('node', $node, 'field_date', $node->language);
+  $date = $date = format_date(strtotime($field[0]['value'] . ' ' . $field[0]['timezone_db']), 'long', '', $field[0]['timezone']); 
+  $subject = $date.': '.$title;
+  $fields = _alingsasintra_booking_get_field_settings($node);
+  $access = node_access("update", $node) ? true : false;
+  $output = array();
+  if($access || user_access('edit any event content') || $node->uid == $user->uid) {
+
+    $result = db_query('SELECT * FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid', array(':nid' => $node->nid));
+
+    $output[] = '"'.$date.'"'.str_pad('', count($field)-2);
+    $output[] = '"'.$title.'"'.str_pad('', count($field)-2);
+    $output[] = '""'.str_pad('', count($field)-2);
+
+    $line = array(
+          t('Name'),
+          t('Email'),
+          t('Date of booking'),
+          );
+    foreach($fields as $field) {
+      $line[] = $field['title'];
+    }
+    $output[] = '"' . join('","', $line) . '"';
+
+    foreach($result as $item) {
+      $line = array(
+          $item->realname,
+          $item->email,
+          date('Y-m-d', $item->bookingtimestamp),
+          );
+      $data = unserialize($item->bookingdata);
+      foreach($fields as $field) {
+        $line[] = $data[$field['id']];
+      }
+      $output[] = '"' . join('","', $line) . '"';
+    }
+    $output = join("\n", $output);
+
+    //send as download
+    header('Content-Description: File Transfer');
+    header('Content-Type: text/csv; charset=UTF-8');
+
+    $filename = str_replace(" ", "_", $date."-".$title);
+    $filename = preg_replace('/[^A-Za-z0-9\-_]/', '', $filename);
+
+    header('Content-Disposition: attachment; filename='.$filename.'.csv');
+    echo $output;
+    exit;
+  }
+
+  $output = '';
+
+  drupal_set_title(t('Send mail to participants'));
+  $result = db_query('SELECT b.bid FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid', array(':nid' => $node->nid));
+
+
+  return $output;
+}
+
+function _alingsasintra_booking_participant_edit($nid, $bid) {
+  global $user;
+
+  $node = node_load($nid);
+  drupal_set_title(t('Edit booking'));
+
+  $result = db_query('SELECT * FROM {alingsasintra_booking_participants} b WHERE bid = :bid', array(':bid' => $bid));
+  $item = $result->fetchObject();
+  $access = node_access("update", $node) ? true : false;
+  //only allow for special users...
+  if($access || user_access('edit any event content') || $item->bookedby == $user->uid || $item->uid == $user->uid) {
+    $output .= render(drupal_get_form(alingsasintra_booking_form, array('nid' => $nid, 'booking' => $item)));
+    return $output;
+  }
+
+  drupal_set_message(t('Access denied'), 'error');
+  drupal_goto('node/'.$nid);
+
+}
+
+function _alingsasintra_booking_participants($nid) {
+  $node = node_load($nid);
+  global $user;
+  drupal_set_title(t('View participants'));
+  $result = _alingsasintra_booking_get_participants($nid);
+  $output .= '<ol>';
+
+  if(count($result)) {
+    $access = node_access("update", $node) ? true : false;
+    foreach($result as $item) {
+      if($access || user_access('edit any event content') || $item->bookedby == $user->uid || $item->uid == $user->uid) {
+        $output .= '<li><a href="'.url('booking/'.$node->nid.'/participant/'.$item->bid).'/view">'.$item->realname.'</a> <a href="mailto:'.$item->email.'">'.$item->email.'</a></li>';
+      }
+      else {
+        $output .= '<li>'.$item->realname.' '.$item->email.'</li>';
+      }
+    }
+  }
+  else {
+    $output .= '<li>'.t('No entries.').'</li>';
+  }
+  $output .= '</ol>';
+  if($access || user_access('edit any event content')) {
+    $output .= '<div class="form-item">';
+    $output .= '<a href="'.url('booking/'.$node->nid.'/participants/mail').'" class="button">'.t('Send mail to participants').'</a> ';
+    $output .= '<a href="'.url('booking/'.$node->nid.'/participants/download').'" class="button">'.t('Download list').'</a> ';
+    $output .= '</div>';
+  }
+  return $output;
+}
+
+function _alingsasintra_booking_mybookedparticipants($nid) {
+  $node = node_load($nid);
+  global $user;
+  drupal_set_title(t('View my bookings'));
+  $result = _alingsasintra_booking_get_bookings($nid, $user->uid);
+  $output .= '<ol>';
+  foreach($result as $item) {
+    if($item->bookedby == $user->uid) {
+      $output .= '<li><a href="'.url('booking/'.$node->nid.'/participant/'.$item->bid).'/view">'.$item->realname.'</a> <a href="mailto:'.$item->email.'">'.$item->email.'</a></li>';
+    }
+  }
+  $output .= '</ol>';
+  return $output;
+}
+
+function _alingsasintra_booking_participant_view($nid, $bid) {
+  global $user;
+  $node = node_load($nid);
+  $fields = _alingsasintra_booking_get_field_settings($node);
+  drupal_set_title(t('View participant'));
+  $result = db_query('SELECT * FROM {alingsasintra_booking_participants} b WHERE b.bid = :bid', array(':bid' => $bid));
+  $item = $result->fetchObject();
+  $access = node_access("update", $node) ? true : false;
+  //$booker = $account->field_firstname->value().' '.$account->field_lastname->value();
+  if($item && ($access || user_access('edit any event content') || $item->bookedby == $user->uid || $item->uid == $user->uid)) {
+    $output .= '<ul>';
+    $output .= '<li>'.t('Name').': '.$item->realname.'</li>';
+    if($item->email) {
+      $output .= '<li>'.t('Email').': <a href="mailto:'.$item->email.'">'.$item->email.'</a></li>';
+    }
+    if($account = user_load($item->bookedby)) {
+      $account = entity_metadata_wrapper('user', $account);
+      $output .= '<li>'.t('Booked by').': <a href="/user/'.$item->bookedby.'">'.$account->field_firstname->value().' '.$account->field_lastname->value().'</a></li>';
+    }
+    $data = unserialize($item->bookingdata);
+    foreach($fields as $field) {
+      $output .= '<li>'.$field['title'].': '.$data[$field['id']].'</li>';
+    }
+    $output .= '</ul>';
+
+    $output .= '<div class="form-item"><a href="'.url('booking/'.$node->nid.'/participant/'.$bid.'/delete').'" class="button">'.t('Remove participant').'</a>';
+    $output .= ' <a href="'.url('booking/'.$node->nid.'/participant/'.$bid.'/edit').'" class="button">'.t('Edit participant').'</a></div>';
+    return $output;
+  }
+
+  drupal_set_message(t('Access denied'), 'error');
+  drupal_goto('node/'.$nid);
+
+}
+
+function _alingsasintra_booking_participant_delete($nid, $bid) {
+  global $user;
+
+  $result = db_query('SELECT * FROM {alingsasintra_booking_participants} b WHERE b.bid = :bid', array(':bid' => $bid));
+  $item = $result->fetchObject();
+  $access = node_access("update", node_load($nid)) ? true : false;
+
+  if($access || user_access('edit any event content') || $item->bookedby == $user->uid || $item->uid == $user->uid) {
+    drupal_set_message(t('Participant deleted.'));
+    $result = db_query('DELETE FROM {alingsasintra_booking_participants} WHERE bid = :bid', array(':bid' => $bid));
+  }
+  else {
+    drupal_set_message(t('Access denied'), 'error');
+  }
+  drupal_goto('booking/'.$nid.'/participants');
+}
+
+function _alingsasintra_booking_get_participants($nid) {
+  $result = db_query('SELECT * FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid', array(':nid' => $nid));
+  $participants = array();
+  foreach($result as $item) {
+    if($item->uid) $item->user = user_load($item->uid);
+    $participants[] = $item;
+  }
+  return $participants;
+}
+
+function _alingsasintra_booking_get_bookings($nid, $uid) {
+  $result = db_query('SELECT * FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid AND (b.uid = :uid OR b.bookedby = :uid)' , array(':nid' => $nid, ':uid' => $uid));
+  $participants = array();
+  foreach($result as $item) {
+    if($item->uid) $item->user = user_load($item->uid);
+    $participants[] = $item;
+  }
+  return $participants;
+}
+
+function _alingsasintra_booking_mybookings() {
+  global $user;
+  $output = '';
+  drupal_set_title(t('My bookings'));
+  $result = db_query('SELECT DISTINCT b.nid FROM {alingsasintra_booking_participants} b WHERE b.uid = :uid OR b.bookedby = :uid', array(':uid' => $user->uid));
+
+  $nodes = array();
+  foreach($result as $item) {
+    if($item->nid && $node = node_load($item->nid)) {
+      $nodes[] = render(node_view($node, 'teaser'));
+    }
+  }
+  if(count($nodes)) {
+    $output .= '<div class="m news-listing company-news"><ul><li class="cf">'.implode('</li><li class="cf">', $nodes).'</li></ul></div>';
+  }
+  else {
+    $output .= '<div class="m news-listing company-news"><li class="cf" style="list-style:none;">'.t('No entry found').'</li></div>';
+  }
+
+  return $output;
+}
+
+function _alingsasintra_booking_mymanagedevents() {
+  global $user;
+
+  $date = date('Y-m-d H:i:s');
+
+  $query = new EntityFieldQuery();
+  $entities = $query->entityCondition('entity_type', 'node')
+  ->entityCondition('bundle', 'event')
+  ->propertyCondition('status', 1)
+  ->propertyCondition('uid', $user->uid)
+  ->fieldCondition('field_date', 'value2', date("Y-m-d"), '>')
+  ->fieldCondition('field_bookable', 'value', 1, '=')
+  ->fieldOrderBy('field_date', 'value', 'ASC')
+  ->execute();
+
+  $nids = array_keys($entities['node']);
+  $nodes = node_load_multiple($nids);
+  $views = node_view_multiple($nodes, 'teaser');
+  $output = '';
+  drupal_set_title(t('My managed events'));
+
+  if(count($nodes)) {
+     $result = db_query('SELECT b.nid, COUNT(*) as c FROM {alingsasintra_booking_participants} b WHERE b.nid IN ('.join(',',$nids).') GROUP BY b.nid');
+
+     foreach($result as $item) {
+       $views['nodes'][$item->nid]['#alingsasintra_booking_counts'] = $item->c;
+     }
+
+     foreach($views['nodes'] as $item) {
+       if($item['#node']->nid) {
+         $views['nodes'][$item['#node']->nid]['bookable'] = true;
+         if(!isset($views['nodes'][$item['#node']->nid]['#alingsasintra_booking_counts'])) {
+           $views['nodes'][$item['#node']->nid]['#alingsasintra_booking_counts'] = 0;
+         }
+
+         if($views['nodes'][$item['#node']->nid]['#alingsasintra_booking_counts'] > 0) {
+           $views['nodes'][$item['#node']->nid]['booking_edit'] = '<a href="/booking/'.$item['#node']->nid.'/participants">Visa deltagarlista</a>';
+         }
+         $views['nodes'][$item['#node']->nid]['booking_info'] = $views['nodes'][$item['#node']->nid]['#alingsasintra_booking_counts']." av ".$nodes[$item['#node']->nid]->field_max_participants[LANGUAGE_NONE][0]['value']." platser bokad.";
+         $views['nodes'][$item['#node']->nid]['#prefix'] = '<li class="cf">';
+         $views['nodes'][$item['#node']->nid]['#suffix'] = '</li>';
+       }
+     }
+     $output .= '<div class="m news-listing company-news"><ul>' . render($views['nodes']) . '</ul></div>';
+
+  }
+  else {
+    $output .= '<div class="m news-listing company-news"><li class="cf" style="list-style:none;">'.t('No entry found').'</li></div>';
+  }
+
+  return $output;
+}
+
+function _alingsasintra_booking_get_field_settings($node) {
+  $field_info = field_info_field('field_event_additional_info');
+  $fields = array();
+  foreach($node->field_event_additional_info[LANGUAGE_NONE] as $item) {
+    $parts = explode('_', $item['value']);
+    $element = array(
+        'id' => $item['value'],
+        'title' => $field_info['settings']['allowed_values'][$item['value']],
+    );
+    switch($parts[1]) {
+      case "tf":
+        $element['type'] = 'textfield';
+        break;
+      case "ta":
+        $element['type'] = 'textarea';
+        break;
+    }
+    $fields[] = $element;
+  }
+  return $fields;
+}
+
+/**
+ * The booking form
+ */
+function alingsasintra_booking_form($form, &$form_state) {
+  global $user;
+  $node = node_load($form_state['build_info']['args'][0]['nid']);
+  $fields = _alingsasintra_booking_get_field_settings($node);
+  if($form_state['build_info']['args'][0]['booking']) {
+    $booking = $form_state['build_info']['args'][0]['booking'];
+    $data = unserialize($booking->bookingdata);
+    $data_realname = $booking->realname;
+    $data_email = $booking->email;
+
+    $data_button = t('Save');
+    $bid = $booking->bid;
+  }
+  else {
+    $account = entity_metadata_wrapper('user', $user);
+    $data_realname = $account->field_firstname->value().' '.$account->field_lastname->value();
+    $data_email = '';
+    if($account->field_user_email->value()) $data_email = $account->field_user_email->value();
+    if($user->mail) $data_email = $user->mail;
+    $data = array(
+      'avd_tf' => $account->field_ou->value(),
+      'tel_tf' => $account->field_user_phone->value(),
+      'epo_tf' => $account->field_user_email->value(),
+      );
+    $data_button = t('Register participant');
+    $bid = 0;
+  }
+  $form = array (
+      'bid' => array (
+          '#type' => 'hidden',
+          '#default_value' => $bid,
+      ),
+      'nid' => array (
+          '#type' => 'hidden',
+          '#default_value' => $form_state['build_info']['args'][0]['nid'],
+      ),
+      'realname' => array (
+          '#type' => 'textfield',
+          '#title' => t('Name'),
+          '#default_value' => $data_realname,
+          '#required' => TRUE,
+      ),
+      'email' => array (
+          '#type' => 'textfield',
+          '#title' => t('Email'),
+          '#default_value' => $data_email,
+      ),
+      '#validate' => array('_alingsasintra_booking_form_validate'),
+  );
+  foreach($fields as $field) {
+    $form[$field['id']] = array (
+        '#type' => $field['type'],
+        '#title' => $field['title'],
+        '#default_value' =>  $data[$field['id']],
+    );
+  }
+  $form['submit'] = array (
+          '#type' => 'submit',
+          '#value' => $data_button,
+      );
+
+  return $form;
+}
+
+function _alingsasintra_booking_form_validate($form, &$form_state) {
+  if($form_state['values']['email'] && !valid_email_address($form_state['values']['email'])) {
+    form_set_error('email', t('The email address appears to be invalid.'));
+  }
+}
+
+function alingsasintra_booking_form_submit($form, &$form_state) {
+  global $user;
+  $node = node_load(arg(1));
+  $fields = _alingsasintra_booking_get_field_settings($node);
+  $data = array();
+  foreach($fields as $field) {
+    $data[$field['id']] = $form_state['values'][$field['id']];
+  }
+  $data = serialize($data);
+
+  $uid = $user->uid;
+  if($form_state['values']['email']) {
+    if($booked_user = user_load_by_mail($form_state['values']['email'])){
+      $uid = $booked_user->uid;
+    }
+  }
+
+  $values = array(
+      'nid' => arg(1),
+      'uid' => $uid,
+      'realname' => $form_state['values']['realname'],
+      'email' => $form_state['values']['email'],
+      'bookingdata' => $data,
+      'bookedby' => $user->uid,
+      'bookingtimestamp' => time(),
+  );
+
+  if($form_state['values']['bid']) {
+
+    //check if user is allowed to edit this
+    $access = node_access("update", node_load(arg(1))) ? true : false;
+    $result = db_query('SELECT * FROM {alingsasintra_booking_participants} b WHERE b.bid = :bid', array(':bid' => $form_state['values']['bid']));
+    $item = $result->fetchObject();
+
+    if($access || user_access('edit any event content') || $item->bookedby == $user->uid || $item->uid == $user->uid) {
+
+      $values['bookedby'] = $item->bookedby;
+
+      $result = db_update('alingsasintra_booking_participants')
+      ->fields($values)
+      ->condition('bid', $form_state['values']['bid'], '=')
+      ->execute();
+      $message = t('Changes have been saved.');
+    }
+    else {
+      drupal_set_message(t('Access denied'), 'error');
+      drupal_goto('node/'.arg(1));
+    }
+  }
+  else {
+    $result = db_insert('alingsasintra_booking_participants')
+    ->fields($values)
+    ->execute();
+    $message = t('Participant has been registered.');
+  }
+  if($result) {
+    drupal_set_message($message);
+    drupal_goto('booking/'.arg(1).'/participants');
+  }
+  else {
+    drupal_set_message(t('There was an error when trying to save the data.', 'error'));
+  }
+}
+
+/**
+ * The booking form
+ */
+function alingsasintra_booking_mail_form($form, &$form_state) {
+  global $base_url;
+  //get event information
+
+  if($form_state['build_info']['args'][0]['booking']) {
+    $booking = $form_state['build_info']['args'][0]['booking'];
+    $subject = $booking->subject;
+  }
+  else {
+    $node = node_load($form_state['build_info']['args'][0]['nid']);
+    $field = field_get_items('node', $node, 'field_date', $node->language);
+    $date = format_date(strtotime($field[0]['value'] . ' ' . $field[0]['timezone_db']), 'long', '', $field[0]['timezone']);
+    $title = $node->title;
+    $subject = $date.': '.$title;
+    $message = 'Länk till kurs/aktivität: '.$base_url.'/node/'.$form_state['build_info']['args'][0]['nid'];
+  }
+
+  $form = array (
+      'nid' => array (
+          '#type' => 'hidden',
+          '#default_value' => $form_state['build_info']['args'][0]['nid'],
+      ),
+      'subject' => array (
+          '#type' => 'textfield',
+          '#title' => t('Subject'),
+          '#default_value' => $subject,
+          '#required' => TRUE,
+      ),
+      'message' => array (
+          '#type' => 'textarea',
+          '#title' => t('Message'),
+          '#default_value' => $message,
+          '#required' => TRUE,
+      ),
+      'attachement' => array (
+          '#type' => 'file',
+          '#title' => t('Attachement'),
+      ),
+      'submit' => array (
+          '#type' => 'submit',
+          '#value' => t('Send mail'),
+      ),
+      '#validate' => array('_alingsasintra_booking_mail_form_validate'),
+  );
+  return $form;
+}
+
+function _alingsasintra_booking_mail_form_validate($form, &$form_state) {
+  // check fileupload
+  $file = file_save_upload('attachement', array(
+      'file_validate_extensions' => array('png gif jpg jpeg pdf odt ods odp doc docx xls xlsx ppt pptx txt csv'),
+  ));
+  if ($file !== false) {
+      $form_state['values']['attachement'] = $file;
+  }
+  else {
+    form_set_error('file', t('Failed to write the uploaded file the temporary file folder.'));
+  }
+}
+
+function alingsasintra_booking_mail_form_submit($form, &$form_state) {
+  global $user;
+  global $base_url;
+  //get recipients and author
+  $result = _alingsasintra_booking_get_participants($form_state['values']['nid']);
+  $mail_sent = 0;
+  $mail_error = array();
+  if(count($result)) {
+
+    $from = $user->mail ? $user->mail : variable_get('system_mail', 'no-reply@alingsas.se');
+    $my_module = 'alingsasintra_booking';
+    $my_mail_token = 'bulkmail';
+    $system = drupal_mail_system($my_module, $my_mail_token);
+    $message = array(
+        'id' => $my_module . '_' . $my_mail_token,
+        'from' => $from,
+        'subject' => $form_state['values']['subject'],
+        'body' => array(utf8_decode($form_state['values']['message'])),
+        'headers' => array(
+            'From' => $from,
+            'Sender' => $from,
+            'Return-Path' => $from,
+        ),
+    );
+
+    if(isset($form_state['values']['message']['format'])) {
+      if($form_state['values']['message']['format'] == 'html') {
+        //quick hack for embedded images.
+        $body = $form_state['values']['message']['value'];
+        $body = str_replace('/sites/default/files/', $base_url.'/sites/default/files/', $body);
+        $message['body'] = array($body);
+        $message['headers']['Content-Type'] = 'text/html; charset=UTF-8';
+
+
+      }
+      else {
+        $body = array($form_state['values']['message']['value']);
+      }
+    }
+
+    if($form_state['values']['attachement']) {
+      $file = $form_state['values']['attachement'];
+      $message['params']['attachments'][] = array(
+          'filepath' => drupal_realpath($file->uri),
+          'filename' => $file->filename,
+          'filemime' => $file->filemime,
+          'list' => TRUE
+      );
+    }
+
+    foreach($result as $recipient) {
+      if($recipient->email && valid_email_address($recipient->email)) {
+        $message['to'] = $recipient->email;
+        $formatted_message = $system->format($message);
+
+        if($system->mail($formatted_message)) {
+          $mail_sent++;
+        }
+        else {
+          $mail_error[] = $recipient->email;
+        }
+      }
+    }
+
+    if($user->mail && valid_email_address($user->mail)) {
+      $message['to'] = $user->mail;
+      $message = $system->format($message);
+      drupal_set_message( $system->mail($message) ? 'En kopia skickades till '.$user->mail : 'Fel: Kunde inte skicka kopia till '.$user->mail );
+    }
+  }
+
+  drupal_set_message('Mail skickades till '.$mail_sent.' av '.count($result).' deltagare.');
+
+  if(count($mail_error) > 0) {
+    drupal_set_message('Kunde inte skicka mail till: ' . implode(',', $mail_error));
+  }
+}
+
+/**
+ * Implements hook_search_api_query_alter
+ * @param SearchApiQuery $query
+ */
+function alingsasintra_booking_search_api_query_alter($query) {
+
+}
+
+/**
+ * Implements hook_block_info
+ * @return array $blocks
+ */
+function alingsasintra_booking_block_info() {
+  $blocks = array();
+  $blocks['booking_info'] = array(
+      'info' => t('Booking info'),
+      'status' => FALSE,
+      'weight' => 0,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view
+ * @param string $delta block_id
+ * @return array $block
+ */
+function alingsasintra_booking_block_view($delta = '') {
+  switch ($delta) {
+    case 'booking_info':
+      $block['content'] = _alingsasintra_booking_infobox();
+      return $block;
+      break;
+  }
+}
+
+/**
+ * Block with informations about the event and booking
+ */
+function _alingsasintra_booking_infobox() {
+  $output = '';
+  global $user;
+  if ((arg(0) == 'node' || arg(0) == 'booking') && arg(1)) {
+    $node = node_load(arg(1));
+    if($node->type == 'event') {
+      if($node->field_bookable[LANGUAGE_NONE][0]['value']) {
+        $result = db_query('SELECT b.bid FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid', array(':nid' => $node->nid));
+        $booking_full = $result->rowCount() >= $node->field_max_participants[LANGUAGE_NONE][0]['value'] ? true : false;
+        $booking_all = $node->field_max_participants[LANGUAGE_NONE][0]['value'];
+        $booking_free = $node->field_max_participants[LANGUAGE_NONE][0]['value']-$result->rowCount();
+        $event_link = '<strong><a href="'.url('kalender/'.$node->nid).'">'.t('Show event').'</a></strong>';
+        if($booking_free) {
+          $booking_link = '<li><a href="'.url('booking/'.$node->nid.'/participant/add').'" class="button">'.t('Register participant').'</a></li>';
+        }
+        if($booking_free < $booking_all) {
+          $list_link = '<li><a href="'.url('booking/'.$node->nid.'/participants').'" class="button">'.t('View participants').'</a></li>';
+        }
+        $booking_info = '<li class="pub-name"><strong>Lediga platser:</strong> '.$booking_free.' av '.$booking_all.'</li>';
+
+        //check if user has booked this event
+        $result = db_query('SELECT b.bid FROM {alingsasintra_booking_participants} b WHERE b.nid = :nid AND b.uid = :uid', array(':nid' => $node->nid, ':uid' => $user->uid));
+        if($result->rowCount()) {
+          $bid = $result->fetchAssoc();
+          $bid = $bid['bid'];
+          $booking_userinfo = '<li class="pub-name"><strong>'.t('You have booked this event.').'</strong></li>';
+          $booking_useredit = '<li><a href="'.url('booking/'.$node->nid.'/mybookedparticipants').'" class="button">'.t('Edit your bookings').'</a></li>';
+        }
+      }
+      if(arg(0) == 'node') {
+        $teaser = '<p>&nbsp;</p>';
+      }
+      else {
+        $teaser = '<div class="teaser">'.render(node_view(node_load($node->nid), 'teaser')).'</div>';
+      }
+      //organization
+      $items = array();
+      $items_o = array();
+      if($node->promote && ($node->type == 'event') && isset($node->field_organizational_structure[LANGUAGE_NONE]) && count($node->field_organizational_structure[LANGUAGE_NONE])) {
+        $terms = taxonomy_term_load_multiple(array_map(function($a){
+          return $a['tid'];
+        },$node->field_organizational_structure[LANGUAGE_NONE]));
+        foreach($terms as $item) {
+          $items_o[] = '<li><a href="/events-by-organization?f[0]=field_organizational_structure%253Aname%3A'.$item->name.'">'.$item->name.'</a></li>';
+        }
+        if(count($items_o)) {
+          $items = array_merge(array('<li class="pub-group-title">'.t('Organization').':</li>'), $items_o);
+        }
+      }
+      if(count($items)) {
+        $items = join('', $items);
+        $items = <<<EOL
+          <li class="pub-unit">
+  					<ul class="pub-group">
+  						{$items}
+  					</ul>
+  				</li>
+EOL;
+      }
+      else {
+        $items = '';
+      }
+      $date = field_view_field('node', $node, 'field_date');
+      $date = '<br/>'.$date[0]['#markup'];
+      $location = ($node->field_event_location[LANGUAGE_NONE][0]['value']) ? '<li><strong>'.t('Location').':</strong> '.$node->field_event_location[LANGUAGE_NONE][0]['value'].'</li>' : '';
+      $output = <<<EOL
+            {$teaser}
+            <ul class="pub-meta">
+    					<li class="pub-date"><strong>Datum:</strong> {$date}</li>
+    					{$location}
+    					{$booking_info}
+    					{$booking_userinfo}
+    					{$booking_useredit}
+    					{$booking_link}
+    					{$list_link}
+    					{$items}
+    				</ul>
+EOL;
+    }
+  }
+  return array('#markup' => $output);
+}
+
+/**
+ * Implements hook_theme_preprocess
+ */
+function alingsasintra_booking_preprocess_html(&$vars) {
+  switch (arg(1)) {
+    case "mybookings":
+      $vars['classes_array'][] = 'page-booking-mymanagedevents';
+      break;
+  }
+}

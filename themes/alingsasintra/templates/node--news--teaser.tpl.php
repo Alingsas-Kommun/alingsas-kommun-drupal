@@ -2,7 +2,7 @@
 				<?php print render($content['field_image']); ?>
 <?php endif; ?>
 				<h3><a href="<?php print $node_url; ?>"><?php print $title; ?></a></h3>
-				<span class="date"><?php print $date; ?></span>
+				<span class="date">Publicerad den <?php print $date; ?></span>
 				<p>
 				<?php if(isset($content['field_introduction'][0]['#markup']) && $content['field_introduction'][0]['#markup']): ?>
 				  <?php print $content['field_introduction'][0]['#markup']; ?>
@@ -16,7 +16,7 @@
 					<?php $ellipsis = (isset($content['field_organizational_structure'][3])) ? '&nbsp...' : ''; ?>
 					  <?php for($i=0; isset($content['field_organizational_structure'][$i]) && $i <= 2; $i++):?>
 						<li>
-						  <a href="/nyheter-term/<?php print $content['field_organizational_structure'][$i]['#options']['entity']->tid; ?>" class="cat"><?php print $content['field_organizational_structure'][$i]['#title']; ?></a><?php print $i==2 ? $ellipsis : ''; ?>
+						  <a href="/news/byterm/<?php print $content['field_organizational_structure'][$i]['#options']['entity']->tid; ?>" class="cat"><?php print $content['field_organizational_structure'][$i]['#title']; ?></a><?php print $i==2 ? $ellipsis : ''; ?>
 						</li>
 						<?php endfor; ?>
 					</ul>

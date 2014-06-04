@@ -1,0 +1,98 @@
+li.alfresco-site-link a.add, li.alfresco-site-link a.del {
+  float: right;
+  width: 26px;
+  overflow: hidden;
+  text-indent: 9999px;
+  height: 22px;
+  background-image: url('icons/star-deselected_16x16.png');
+  cursor: pointer;
+  background-repeat: no-repeat;
+}
+li.alfresco-site-link a.del {
+  background-image: url('icons/star-selected_16x16.png');
+}
+li.alfresco-site-link h3 {
+	background-image: url('icons/generic-site-16.png');
+  background-repeat: no-repeat;
+  background-position: left 2px;
+  padding-left: 20px;
+}
+
+.alfresco-browser {
+	font-size: 13px !important;
+}
+.alfresco-browser .throbber {
+	height: 15px;
+	width: 15px;
+  background-image: url('/sites/all/themes/alingsasintra/gui/i/throbber_2.gif');
+  background-repeat: no-repeat;
+  background-position: left -18px;
+}
+.alfresco-browser ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.alfresco-browser a,
+.alfresco-browser a:visited {
+	padding-left: 20px;
+	color:#000;
+  text-decoration:none;
+  padding-top: 4px;
+  padding-bottom: 3px;
+}
+.alfresco-browser p {
+	padding-left: 15px;
+}
+.alfresco-browser li {
+  padding-left: 15px;
+  margin-bottom: 5px;
+}
+.alfresco-browser .al-content > ul > li {
+  padding-left: 0px;
+}
+.alfresco-browser a.site,
+.alfresco-browser a.folder,
+.alfresco-browser a.document {
+  background-image: url('icons/generic-site-16.png');
+  background-repeat: no-repeat;
+  background-position: left 5px;
+}
+.alfresco-browser a.folder {
+  background-image: url('icons/folders-show-16.png');
+}
+.alfresco-browser a.document {
+  background-image: url('icons/generic-file-16.png');
+}
+.alfresco-browser span.private {
+	padding-left: 20px;
+  padding-top: 4px;
+  padding-bottom: 3px;
+	background-image: url('icons/generic-private-site-16.png');
+  background-repeat: no-repeat;
+  background-position: left 5px;
+  color: #aaa;
+}
+.alfresco-browser span.private.document {
+  background-image: url('icons/lock-owner-16.png');
+}
+.alfresco-browser span.add {
+	float: right;
+  width: 20px;
+  overflow: hidden;
+  text-indent: 9999px;
+  height: 20px;
+  background-image: url('/sites/all/themes/alingsasintra/gui/i/icons/icon-plus.png');
+  cursor: pointer;
+  background-repeat: no-repeat;
+}
+.alfresco-browser li.over > a {
+  background-color: #eee;
+}
+form .field-widget-link-field .field-multiple-table .form-type-link-field a.al-browse {
+	margin-top: 10px;
+	float: right;
+}
+form .field-widget-link-field .field-multiple-table .form-type-link-field div.link-attributes {
+	margin-top: 10px;
+}

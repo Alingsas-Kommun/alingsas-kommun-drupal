@@ -26,6 +26,7 @@ stylesheets[all][] = gui/css/drupal.css
 stylesheets[all][] = gui/components/netr-flexslider/css/flexslider.css
 stylesheets[all][] = gui/components/netr-custom-select/css/netr-custom-select.css
 stylesheets[all][] = gui/components/netrtabbedmodule/css/netrtabbedmodule.css
+stylesheets[all][] = gui/custom-theme/jquery-ui-1.9.2.custom.min.css
 stylesheets[print][] = gui/css/print.css
 
 ; LIBRARIES

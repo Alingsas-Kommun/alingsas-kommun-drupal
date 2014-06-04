@@ -1,0 +1,22 @@
+.paging a.prev-page {
+		background: url(../i/pager-left.png) center center no-repeat #ededed;
+		text-indent:-9999px;
+}
+.paging a.next-page {
+		background: url(../i/pager-right.png) center center no-repeat #ededed;
+		text-indent:-9999px;
+}
+.paging em {
+  font-weight:bold;
+  font-style:normal;
+  border:1px solid #ccc;
+  padding:7px;
+  background:#fff;
+}
+
+.teasers .teaser + .teaser {
+	margin-right:0;
+}
+.nav-sub li.active.expanded > a.active {
+	background:url("../i/sel-gradient.png");
+}

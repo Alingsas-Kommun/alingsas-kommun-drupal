@@ -1,0 +1,22 @@
+.nav-main li.active a, 
+.nav-main li.active-trail a {
+	border-bottom:none;
+}
+.header-search {
+	margin:0 auto;
+	padding:0;
+	border:none;
+	background:none;
+}
+.header-search div {
+  max-width:364px;
+  margin:26px auto 0;
+  padding:6px;
+  -webkit-border-radius:3px;
+  -moz-border-radius:3px;
+  border-radius:3px;
+  background:url(../i/form-bg.png) repeat-x #eee;
+}
+.header-search input#edit-keys {
+	max-width:263px;
+}

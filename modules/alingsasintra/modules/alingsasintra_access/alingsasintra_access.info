@@ -1,0 +1,4 @@
+name = Alingsås Intranet Access Restrictions
+description = Access restriction based on groups
+package = Alingsås Intranet
+core = 7.x

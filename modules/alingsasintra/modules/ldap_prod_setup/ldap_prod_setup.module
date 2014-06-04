@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the LDAP prod setup feature.
+ */
+
+include_once 'ldap_prod_setup.features.inc';

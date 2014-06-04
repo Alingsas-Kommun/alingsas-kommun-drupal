@@ -1,0 +1,565 @@
+<?php
+
+/**
+ * @file
+ * The ALfresco REST integration
+ */
+
+/**
+  * Implements hook_menu().
+  */
+function alingsasintra_alfresco_menu() {
+  $items['alfresco/%'] = array(
+      'page callback' => '_alingsasintra_alfresco_request',
+      'page arguments' => array(1),
+      'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['alfresco/%/%'] = array(
+      'page callback' => '_alingsasintra_alfresco_request',
+      'page arguments' => array(1,2),
+      'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  $items['alfresco/%/%/%'] = array(
+      'page callback' => '_alingsasintra_alfresco_request',
+      'page arguments' => array(1,2,3),
+      'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function alingsasintra_alfresco_theme() {
+  return array(
+      'browser' => array(
+          'template' => 'alingsasintra_alfresco_browser',
+          'arguments' => array(
+              'title' => null,
+              'body' => null,
+              'link' => null,
+          ),
+      ),
+      'preprocess_browser' => array(
+          'template' => 'alingsasintra_alfresco_browser',
+          'arguments' => array('node' => null),
+      ),
+  );
+}
+
+function alingsasintra_alfresco_preprocess_browser(&$vars) {
+  //convert whatever you send here to the theme vars: $node = $vars['node'];
+}
+
+/**
+ * Controller for the requests
+ */
+function _alingsasintra_alfresco_request($target, $type=null, $id=false) {
+  global $user;
+  $user = user_load($user->uid);
+  $result = FALSE;
+  $type = htmlspecialchars($type);
+  require_once 'includes/AlfrescoConnector.php';
+  $rm = new AlfrescoEntityManager(new AlfrescoConnector(variable_get('alingsasintra_alfresco_host', 'http://localhost'), $user->name));
+  $rm->setPublicHost(variable_get('alingsasintra_alfresco_public_host', 'http://localhost'));
+
+  switch($target) {
+    case 'my-sites':
+      $result = $rm->getSites();
+      drupal_set_title(t('My sites'));
+      break;
+    case 'favourite-sites':
+      if($type == 'set-favourite') {
+        if($id) {
+          $result = $rm->getSites()->findByShortName($id);
+          if($result) {
+            $rm->persist($result->setFavourite(true))->flush();
+            drupal_json_output(true);
+          }
+        }
+        exit;
+      }
+      elseif($type == 'unset-favourite') {
+        if($id) {
+          $result = $rm->getSites()->findByShortName($id);
+          if($result) {
+            $rm->persist($result->setFavourite(false))->flush();
+            drupal_json_output(true);
+          }
+        }
+        exit;
+      }
+      else {
+        $result = $rm->getSites()->findFavourites();
+        drupal_set_title(t('My favourite sites'));
+      }
+      break;
+    case 'my-documents':
+      $result = $rm->getMydocuments();
+      drupal_set_title(t('My Documents'));
+
+      $markup = '<em>' . print_r($result, TRUE) . '</em>';
+      $output =  array(
+          'page' => array(
+              '#type' => 'markup',
+              '#markup' => $markup,
+          ),
+      );
+      return $output;
+      break;
+    case 'my-tasks':
+      $result = $rm->getMytasks();
+      drupal_set_title(t('My Tasks'));
+
+      $markup = '<div class="m news-listing company-news"><ul>';
+      if(count($result)) {
+        foreach ($result as $task) {
+          $markup .= '<li class="cf alfresco-site-link"><h3><a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/task-edit?taskId='.$task->id.'">'.$task->title.'</a></h3>';
+          if($task->description) {
+            $markup .= '<p>'.$task->description.'</p>';
+          }
+          $markup .= '</li>';
+        }
+      }
+      else {
+        $markup .= '<li class="cf alfresco-site-link">'.t('No tasks found.').'</li>';
+      }
+      $markup .= '</ul></div>';
+
+      $output =  array(
+          'page' => array(
+              '#type' => 'markup',
+              '#markup' => $markup,
+          ),
+      );
+      return $output;
+      break;
+
+    case 'my-activities':
+      $result = $rm->getMyactivities();
+      drupal_set_title(t('My Activities'));
+
+      $markup = '<div class="m news-listing company-news"><ul>';
+      if(count($result)) {
+        foreach ($result as $activity) {
+          $markup .= '<li class="cf alfresco-site-link">'. format_date(strtotime($activity->postDate), 'long').'<h3>'.t($activity->activityType).' <a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/site/'.$activity->siteNetwork.'/'.$activity->activitySummary['page'].'">'.$activity->activitySummary['title'].'</a> '.t('in site').' <a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/site/'.$activity->siteNetwork.'/dashboard">'.$activity->siteNetwork.'</a></h3>';
+          $markup .= '</li>';
+        }
+      }
+      else {
+        $markup .= '<li class="cf alfresco-site-link">'.t('No activities found.').'</li>';
+      }
+      $markup .= '</ul></div>';
+
+      $output =  array(
+          'page' => array(
+              '#type' => 'markup',
+              '#markup' => $markup,
+          ),
+      );
+      return $output;
+      break;
+  
+    case 'create-content':
+      drupal_set_title(t('Create content'));
+
+      $markup = '<div class="m news-listing company-news"><ul>';
+      $markup .= '<li class="cf alfresco-site-link"><h3><a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/create-content?destination={nodeRef}&itemId=akdm:instruction">Anvisning</a></h3></li>';
+      $markup .= '<li class="cf alfresco-site-link"><h3><a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/create-content?destination={nodeRef}&itemId=akdm:ordinance">Författning</a></h3></li>';
+      $markup .= '<li class="cf alfresco-site-link"><h3><a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/create-content?destination={nodeRef}&itemId=akdm:listpul">Förteckning - PUL</a></h3></li>';
+      $markup .= '<li class="cf alfresco-site-link"><h3><a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/create-content?destination={nodeRef}&itemId=akdm:generaldocument">Generellt Dokument</a></h3></li>';
+      $markup .= '<li class="cf alfresco-site-link"><h3><a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/create-content?destination={nodeRef}&itemId=akdm:manual"">Handbok</a></h3></li>';
+      $markup .= '<li class="cf alfresco-site-link"><h3><a target="_blank" href="'.variable_get('alingsasintra_alfresco_public_host').'/share/page/create-content?destination={nodeRef}&itemId=akdm:internalvalidation">Intern kontroll</a></h3></li>';
+      $markup .= '</ul></div>';
+
+      $output =  array(
+          'page' => array(
+              '#type' => 'markup',
+              '#markup' => $markup,
+          ),
+      );
+      return $output;
+      break;
+
+    case 'browse':
+      if($type == 'get') {
+        if($id) {
+          $result = $rm->getRepository()->findById($id)->getChildren();
+          drupal_json_output($result);
+          exit;
+        }
+        else {
+          $result = $rm->getSites();
+          $output = theme('browser', array('sites' => $result));
+          print $output; exit;
+        }
+      }
+      else {
+        exit;
+      }
+      drupal_set_title(t('Browse'));
+      break;
+    case 'search':
+      if($type) {
+        $settings = variable_get('alingsasintra_alfresco_search', false);
+        foreach($settings as $key=>$value) {
+          if($value['type'] == $type) {
+            $url = 'search/'.$type;
+            drupal_set_title($value['title']);
+            break;
+          }
+        }
+      }
+      if(!$url) {
+        $url = 'search';
+        drupal_set_title(t('Search @type', array('@type' => t('Documents'))));
+      }
+      $result = array();
+      $users = array(); //caching the usernames
+      $query = $_GET['search_api_views_fulltext'];
+      $org = htmlspecialchars($_GET['org']);
+      $result = $rm->search($query, $type, $_GET['page']);
+      $markup =<<<EOF
+      <div class="row cols-3 cf" style="">
+      <form action="/{$url}" method="get" id="views-exposed-form-search-nodes-search-nodes" accept-charset="UTF-8"><div><div class="views-exposed-form">
+  <div class="views-exposed-widgets clearfix">
+          <div id="edit-search-api-views-fulltext-wrapper" class="views-exposed-widget views-widget-filter-search_api_views_fulltext">
+                  <label for="edit-search-api-views-fulltext">
+            Sök          </label>
+                        <div class="views-widget">
+          <div class="form-item form-type-textfield form-item-search-api-views-fulltext">
+ <input type="text" id="edit-search-api-views-fulltext" name="search_api_views_fulltext" value="{$query}" size="30" maxlength="128" class="form-text">
+</div>
+        </div>
+              </div>
+          <div id="edit-search-target-wrapper" class="views-exposed-widget views-widget-search_target">
+                        <div class="views-widget">
+          <div class="form-item form-type-select form-item-search-target">
+  <label for="edit-search-target">Typ </label>
+ <div class="custom-select-container"><select id="edit-search-target" name="search_target" class="form-select replaced"><option value="content">Innehåll</option><option value="person">Användare</option><option value="document" selected="selected">Documents</option></select><span class="custom-select" aria-hidden="true"><span><span>Documents</span></span></span></div>
+</div>
+        </div>
+              </div>
+        <div class="views-exposed-widget views-submit-button">
+      <input type="hidden" id="org" name="org" value="{$org}"/>
+      <input type="submit" id="edit-submit-search-nodes" name="" value="Sök" class="form-submit">    </div>
+  </div>
+</div>
+</div></form>    </div>
+EOF;
+      $markup .= '<div class="m news-listing company-news">';
+
+      if(count($result)) {
+        $start = 1;
+        //$end = $rm->search_count_all;
+        $start = ($_GET['page'] * 30)+1;
+        $end = ($start-1)+count($result);
+
+        $markup .= '<p>Visar '.$start.'-'.$end.'</p><ul>';
+        foreach ($result as $site) {
+          if(!$users[$site->author]) {
+            $u = user_load_by_name($site->author);
+            $realname = array();
+            if($u->field_firstname['und']['0']['value']) $realname[] = $u->field_firstname['und']['0']['value'];
+            if($u->field_lastname['und']['0']['value']) $realname[] = $u->field_lastname['und']['0']['value'];
+            if(count($realname)) {
+              $users[$site->author] = join(' ', $realname);
+            }
+            else {
+              $users[$site->author] = $site->author;
+            }
+          }
+          if(!$site->title) {
+            $title = $site->name;
+          }
+          else {
+            $title = $site->title." (".$site->name.")";
+          }
+          $markup .= '<li class="cf alfresco-document-link"><h3><a target="_blank" href="'.$site->href.'">'.$title.'</a></h3>';
+          if($site->description) {
+            $markup .= '<p>'.$site->description.'</p>';
+          }
+          $markup .= '<p class="news-meta"><span class="date">'.format_date($site->date,'long').'</span><span class="type">Typ: Dokument</span><span class="author">Författare: '.$users[$site->author].'</span></p>';
+        }
+        $markup .= '</ul>';
+        if(count($result) >= 30) {
+          $markup .= _alingsasintra_pager(false, $_GET['page'], 30, '/'.$url.'?search_api_views_fulltext='.$query.'&search_target=document&org='.$org);
+        }
+        elseif(count($result) < 30 && $_GET['page'] > 0) {
+          $all = $_GET['page'] * 30 + count($result);
+          $markup .= _alingsasintra_pager($all, $_GET['page'], 30, '/'.$url.'?search_api_views_fulltext='.$query.'&search_target=document&org='.$org);
+        }
+      }
+      else {
+        $markup .= '<ul><li class="cf alfresco-site-link">'.t('No documents found.').'</li></ul>';
+      }
+      $markup .= '</div>';
+      $output =  array(
+          'page' => array(
+              '#type' => 'markup',
+              '#markup' => $markup,
+          ),
+      );
+      return $output;
+      break;
+  }
+  $markup = '<div class="m news-listing company-news"><ul>';
+    if(count($result)) {
+      foreach ($result as $site) {
+        $favourite = '<a class="alfresco_ajax add" href="'.url('alfresco/favourite-sites/set-favourite/'.$site->shortName).'" title="'.t('Add to favourites').'">'.t('Add to favourites').'</a>';
+        if($site->getFavourite()) {
+          $favourite = $favourite = '<a class="alfresco_ajax del" href="'.url('alfresco/favourite-sites/unset-favourite/'.$site->shortName).'" title="'.t('Remove from favourites').'">'.t('Remove from favourites').'</a>';
+        }
+        $markup .= '<li class="cf alfresco-site-link"><h3><a target="_blank" href="'.$site->href.'">'.$site->title.'</a>'.$favourite.'</h3>';
+        if($site->description) {
+          $markup .= '<p>'.$site->description.'</p>';
+        }
+        $markup .= '</li>';
+      }
+    }
+    else {
+      $markup .= '<li class="cf alfresco-site-link">'.t('No sites found.').'</li>';
+    }
+    $addlink = url('alfresco/favourite-sites/set-favourite');
+    $dellink = url('alfresco/favourite-sites/unset-favourite');
+    $markup .= <<<EOF
+    </ul></div>
+  <script type="text/javascript">
+  jQuery(function(){
+    var alfresco_site_fav_link_add = '{$addlink}';
+    var alfresco_site_fav_link_del = '{$dellink}';
+    jQuery('a.alfresco_ajax').click(function(e) {
+      var that = jQuery(this);
+      var url = jQuery(this).attr('href');
+      jQuery.getJSON(url, function(data) {
+
+      }).error(function(){
+  	    alert('Could not set status of site.');
+  	  }).complete(function(){
+  	    if(that.hasClass('add')) {
+  	       that.attr('href', alfresco_site_fav_link_del + '/' + that.attr('href').substr(that.attr('href').lastIndexOf('/') + 1));
+  	       that.removeClass('add').addClass('del');
+  	    }
+  	    else {
+  	       that.attr('href', alfresco_site_fav_link_add + '/' + that.attr('href').substr(that.attr('href').lastIndexOf('/') + 1));
+  	       that.removeClass('del').addClass('add');
+  	    }
+  	  });
+  	  return false;
+    });
+  });
+  </script>
+EOF;
+  $output =  array(
+      'page' => array(
+          '#type' => 'markup',
+          '#markup' => $markup,
+      ),
+  );
+  return $output;
+}
+
+/**
+ * Implements hook_page_alter()
+ */
+function alingsasintra_alfresco_form_alter(&$form, &$form_state, $form_id) {
+  drupal_add_library('system', 'ui.dialog');
+  $form['#attached']['js'][] = drupal_get_path('module', 'alingsasintra_alfresco') . '/form-element.js';
+}
+
+function alingsasintra_alfresco_theme_registry_alter(&$theme_registry) {
+	if(!empty($theme_registry['link_field']['function'])) {
+	  $theme_registry['link_field']['function'] = 'alingsasintra_alfresco_theme_link_field';
+	}
+}
+
+/**
+ * FAPI theme for an individual text elements.
+ */
+function alingsasintra_alfresco_theme_link_field($vars) {
+  drupal_add_css(drupal_get_path('module', 'link') .'/link.css');
+
+  $element = $vars['element'];
+  // Prefix single value link fields with the name of the field.
+  if (empty($element['#field']['multiple'])) {
+    if (isset($element['url']) && !isset($element['title'])) {
+      unset($element['url']['#title']);
+    }
+  }
+
+  $output = '';
+  if (isset($element['title'])) {
+    $output .= '<div class="link-field-title">'. drupal_render($element['title']) .'</div>';
+  }
+  $output .= '<div class="link-field-url">'. drupal_render($element['url']) .'</div>';
+  if (!empty($element['attributes']['target'])) {
+    $output .= '<div class="link-attributes">'. drupal_render($element['attributes']['target']) .'</div>';
+  }
+  if (!empty($element['attributes']['title'])) {
+    $output .= '<div class="link-attributes">'. drupal_render($element['attributes']['title']) .'</div>';
+  }
+  $output .= '<div class="link-field-browse"><a class="al-browse button" href="#">'. t('Browse documents') .'</a></div>';
+  return $output;
+}
+
+function alingsasintra_alfresco_block_info() {
+  $blocks = array();
+  $blocks['alfresco_usersites'] = array(
+      'info' => t('My sites'),
+      'status' => 1,
+      'region' => 'sidebar_third',
+      'weight' => 0,
+      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+      'pages' => '',
+  );
+  $blocks['alfresco_rutiner_facet'] = array(
+      'info' => t('Alfresco Rutiner Facet'),
+      'status' => 1,
+      'region' => 'sidebar_second',
+      'weight' => 1,
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'pages' => 'alfresco/search/rutiner',
+  );
+  $blocks['alfresco_rutiner_searchbox'] = array(
+      'info' => t('Alfresco Rutiner Searchbox'),
+      'status' => 0,
+  );
+  return $blocks;
+}
+
+function alingsasintra_alfresco_block_view($delta = '') {
+  switch ($delta) {
+    case 'alfresco_usersites':
+      $block['content'] = _alingsasintra_alfresco_block_usersites();
+      return $block;
+      break;
+    case 'alfresco_rutiner_facet':
+      $block['content'] = _alingsasintra_alfresco_block_rutiner_facet();
+      return $block;
+      break;
+    case 'alfresco_rutiner_searchbox':
+      $block['content'] = _alingsasintra_alfresco_block_rutiner_searchbox();
+      return $block;
+      break;
+  }
+}
+
+function _alingsasintra_alfresco_block_rutiner_searchbox() {
+  $output = '';
+  $settings = variable_get('alingsasintra_alfresco_search', false);
+  $path = request_path();
+  if(isset($settings[$path])) {
+    $items = array();
+    $items[] = '<option value="" selected="selected">Alla</option>';
+    foreach($settings[$path]['names'] as $key=>$value) {
+      $items[] = '<option value="'.$key.'">'.$value.'</option>';
+    }
+    $options = join('', $items);
+    $type = $settings[$path]['type'];
+    $output = <<<EOL
+<div class="row cols-3 cf" style="">
+      <form action="/search/{$type}" method="get" id="views-exposed-form-search-nodes-search-nodes" accept-charset="UTF-8"><div><div class="views-exposed-form">
+  <div class="views-exposed-widgets clearfix">
+          <div id="edit-search-api-views-fulltext-wrapper" class="views-exposed-widget views-widget-filter-search_api_views_fulltext">
+                  <label for="edit-search-api-views-fulltext">
+            Sök          </label>
+                        <div class="views-widget">
+          <div class="form-item form-type-textfield form-item-search-api-views-fulltext">
+ <input type="text" id="edit-search-api-views-fulltext" name="search_api_views_fulltext" value="{$query}" size="30" maxlength="128" class="form-text">
+</div>
+        </div>
+              </div>
+          <div id="edit-search-target-wrapper" class="views-exposed-widget views-widget-search_target">
+                        <div class="views-widget">
+          <div class="form-item form-type-select form-item-search-target">
+ <label for="edit-search-target">Förvaltning/Enhet </label>
+ <select id="org" name="org" class="form-select">
+ {$options}
+ </select>
+</div>
+        </div>
+              </div>
+        <div class="views-exposed-widget views-submit-button">
+      <input type="hidden" id="edit-search-target" name="edit-search-target" value="document"/>
+      <input type="submit" id="edit-submit-search-nodes" name="" value="Sök" class="form-submit">    </div>
+  </div>
+</div>
+</div></form>    </div>
+EOL;
+  }
+
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_alfresco_block_rutiner_facet() {
+  $output = '';
+  $settings = variable_get('alingsasintra_alfresco_search', false);
+  $path = basename(request_path());
+  foreach($settings as $key=>$value) {
+    if($value['type'] == $path) {
+      $path = $key;
+      break;
+    }
+  }
+  if(isset($settings[$path])) {
+    $type = $settings[$path]['type'];
+    $items = array();
+    if($settings[$path]['names'][$_GET['org']]){
+      $url = '/search/'.$type.'?search_api_views_fulltext='.$_GET['search_api_views_fulltext'].'&search_target=document';
+      $items[] = '<li class="leaf"><a href="'.$url.'" rel="nofollow" class="facetapi-active">(-) <span class="element-invisible">'.t('Remove @text filter', array('@text'=>$orgs[$_GET['org']])).'</span></a>'.$settings[$path]['names'][$_GET['org']].'</li>';
+    }
+    else {
+      foreach($settings[$path]['names'] as $key=>$value) {
+        $url = '/search/'.$type.'?search_api_views_fulltext='.$_GET['search_api_views_fulltext'].'&search_target=document&org='.$key;
+        $items[] = '<li class="leaf"><a href="'.$url.'" rel="nofollow" class="facetapi-inactive">'.$value.'<span class="element-invisible">'.t('Apply @text filter', array('@text'=>$value)).'</span></a></li>';
+      }
+    }
+    if(count($items)) {
+      $items = join('', $items);
+      $output = <<<EOL
+<h2>Filtrera Förvaltning/Avdelning</h2>
+<div class="item-list">
+<ul class="facetapi-facetapi-links facetapi-facet-type facetapi-processed" id="facetapi-facet-search-apidefault-node-index-block-type">
+  {$items}
+</ul>
+</div>
+EOL;
+    }
+  }
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_alfresco_block_usersites() {
+  $link_mysites = '<a href="'.url('alfresco/my-sites/get').'">'.t('My sites').'</a>';
+  $link_mytasks = '<a href="'.url('alfresco/my-tasks/get').'">'.t('My tasks').'</a>';
+  $link_myactivities = '<a href="'.url('alfresco/my-activities/get').'">'.t('My activities').'</a>';
+  $link_favsites = '<a href="'.url('alfresco/favourite-sites/get').'">'.t('My favourite sites').'</a>';
+  $link_createcontent = '<a href="'.url('alfresco/create-content').'">'.t('Create content').'</a>';
+  $output = <<<EOL
+<div id="alfresco-sites" class="m toggle-module toggle cf open">
+	<div class="m-h cf">
+		<span class="toggle-icon alfresco-site"></span>
+		<h2>Mina samarbetsytor</h2>
+	</div>
+	<div class="m-c cf">
+		<div class="toggle-list">
+		  <ul>
+		  <li>{$link_mysites}</li>
+      <li>{$link_favsites}</li>
+      <li>{$link_mytasks}</li>
+      <li>{$link_myactivities}</li>
+      <li>{$link_createcontent}</li>
+		  </ul>
+    </div>
+	</div>
+</div>
+EOL;
+
+  return array('#markup' => $output);
+}

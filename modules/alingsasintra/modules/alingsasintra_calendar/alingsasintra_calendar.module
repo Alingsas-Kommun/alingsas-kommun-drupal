@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Calendar feature.
+ */
+
+include_once 'alingsasintra_calendar.features.inc';

@@ -8,4 +8,6 @@
 				<?php endif; ?></p>
 				<div class="news-meta">
 					<?php if($comment_count):?><span class="comments"><?php print $comment_count; ?></span><?php endif; ?>
+					<?php if(isset($content['bookable'])):?><span class="booking"><?php print $content['booking_info']; ?></span><?php endif; ?>
+					<?php if(isset($content['booking_edit'])):?><span class="booking"><?php print $content['booking_edit']; ?></span><?php endif; ?>
 				</div>

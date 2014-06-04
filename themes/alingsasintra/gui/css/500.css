@@ -1,0 +1,16 @@
+/* These styles are used only on the static 500 error page */
+ 
+#content {
+	width:500px;
+	margin:50px auto 0;
+	padding:40px 60px;
+	border:1px solid #ccc;
+}
+
+.read-more {
+    background: url(../i/sprite-icons.png) no-repeat scroll right -268px transparent;
+    line-height: normal;
+    padding-right: 12px;
+    text-align: left;
+    font-weight:bold;
+}

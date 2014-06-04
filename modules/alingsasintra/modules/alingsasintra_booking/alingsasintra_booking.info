@@ -1,0 +1,4 @@
+name = Alingsås Intranet Event Booking
+description = Show events and booking-management
+package = Alingsås Intranet
+core = 7.x

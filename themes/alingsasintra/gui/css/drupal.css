@@ -1,0 +1,166 @@
+/* Styles that are used to implement or override special drupal behaviours. */
+
+body.front .node.node-page {
+	display: none;
+}
+
+.user-profile .user-picture {
+  float:left;
+}
+
+.image-widget-data {
+	width: 100%;
+}
+.form-item.form-type-managed-file input[type="file"] {
+  width:70%;
+  margin-right: 2%;
+}
+.form-item.form-type-managed-file input[type="submit"] {
+  /*width:20%;*/
+}
+#edit-body-und-0-format,
+a.ckeditor_links {
+	display: none!important;
+}
+fieldset#edit-field-file-und {
+	border: none;
+	margin: 0;
+	padding: 0;
+}
+fieldset#edit-field-file-und legend {
+  display: none;
+}
+.image-widget-data .file-icon {
+	display: inline;
+}
+.image-widget input[type="submit"] {
+	float: right;
+}
+.image-widget input#edit-field-image-und-0-upload-button {
+	float: none;
+}
+fieldset#edit-additional-settings {
+	margin-top: 20px;
+}
+html.js input.form-autocomplete {
+  background-position: 100% 16px !important; /* LTR */
+}
+html.js input.throbbing {
+  background-position: 100% -16px !important; /* LTR */
+}
+.form-actions {
+	text-align: center;
+}
+.form-actions input {
+	margin-right: 10px;
+	margin-left: 10px;
+}
+.field-widget-link-field .clearfix {
+	text-align: center;
+}
+.field-widget-link-field input {
+  margin-top: 10px;
+}
+em.caption {
+	display: none;
+}
+.node-type-news .main-content em.caption,
+.node-type-page .main-content em.caption,
+.node-type-event .main-content em.caption,
+.node-type-notification .main-content em.caption,
+.node-type-advert .main-content em.caption {
+	display: block;
+}
+.page-node-edit .fav {
+	display: none;
+}
+.front .company-news .news-group {
+	display: none;
+}
+.front .ni .field-type-image {
+	display: none !important;
+}
+.views-exposed-widget {
+	width: 25%;
+}
+
+/*  Webform */
+.page-node-webform .region-content,
+.page-node-webform-results .region-content {
+	margin-right: 0px;
+}
+.page-node-webform .region-content .main-content,
+.page-node-webform-results .region-content .main-content {
+	margin-bottom: 20px;
+	padding: 20px 20px 0;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	border: 1px solid #ccc;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	background: #fff;
+}
+.page-node-webform select.form-select.replaced {
+	width: 100%;
+}
+.page-node-webform th,
+.page-node-webform td {
+  padding:5px 5px;
+  vertical-align:top;
+}
+.webform-add-form #edit-add-name {
+	width: auto;
+}
+
+#comments .cf {
+	padding: 20px;
+	border-bottom: 1px solid #ccc; 
+}
+#comments h2.title {
+	display: none;
+}
+#comments h2.comment-form {
+  display: block;
+  margin-top: 20px;
+}
+.comment-form h3 {
+	font-size: 13px;
+}
+#comments .cf .user-picture,
+.comment-form .cf .user-picture {
+	float: left;
+	margin-right: 10px;
+}
+#comments .cf .comment span.date,
+.comment-form .cf .comment span.date {
+  float: right;
+}
+#comments .comment-form {
+	padding: 0px 20px;
+}
+.field-widget-term-reference-menu .selector li.alingsaskommun > span.add { display: none !important; }
+
+
+form .field-widget-link-field .field-multiple-table {
+  table-layout: fixed;
+}
+form .field-widget-link-field .field-multiple-table thead {
+	display:none;
+}
+form .field-widget-link-field .field-multiple-table td {
+  width: 80%
+}
+form .field-widget-link-field .field-multiple-table td.field-multiple-drag {
+	width: 10%
+}
+form .field-widget-link-field .field-multiple-table td.delta-order {
+  width: 20%
+}
+
+.manualcrop-style-button-holder {
+    float: right;
+    margin-right: 10px;
+    padding-top: 0!important;
+}

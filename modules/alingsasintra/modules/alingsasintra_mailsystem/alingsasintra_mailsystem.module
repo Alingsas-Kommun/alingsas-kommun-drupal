@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Mailsystem feature.
+ */
+
+include_once 'alingsasintra_mailsystem.features.inc';

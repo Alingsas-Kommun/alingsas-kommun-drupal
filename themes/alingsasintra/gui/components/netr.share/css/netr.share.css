@@ -1,0 +1,27 @@
+/* SHARE ON SOCIAL MEDIA
+============================================================================================================================ */
+#share h2 {
+	 font-size: 1.2em;
+	 line-height: 1;
+	 margin: 0;
+}
+.services ul {
+	margin-left: 0;
+	list-style: none;
+}
+.services li {
+	 width: 33%;
+	 float: left;
+}
+.services a {
+	padding: 2px 0 2px 22px;
+	background: none no-repeat 0 50%;
+}
+.services a.service-google {background-image: url(../i/share-services/google.png);}
+.services a.service-delicious {background-image: url(../i/share-services/delicious.png);}
+.services a.service-facebook {background-image: url(../i/share-services/facebook.png);}
+.services a.service-linkedin {background-image: url(../i/share-services/linkedin.png);}
+.services a.service-twitter {background-image: url(../i/share-services/twitter.png);}
+.services a.service-digg {background-image: url(../i/share-services/digg.png);}
+.services a.service-live {background-image: url(../i/share-services/live.png);}
+.services a.service-add-favourite {background-image: url(../i/share-services/favourites.png);}

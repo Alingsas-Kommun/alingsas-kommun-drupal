@@ -1,21 +1,11 @@
 						<div class="user-status cf">
 <?php
-if($user_profile['field_organizational_structure']['#object']->picture){
-  print theme_image_style(
-  array(
-      'style_name' => 'thumbnail',
-      'path' => $user_profile['field_organizational_structure']['#object']->picture->uri,
-      )
-  );
-}
-else {
-  print '<img src="/sites/all/themes/alingsasintra/gui/i/avatar-default.png"/>';
-}
+print render($user_profile['user_picture']);
 ?>
-							<div>
+						<!--	<div class="user-vision">
 								<h2>Min status</h2>
 								<p>Laddar...</p>
-							</div>
+							</div> -->
 						</div>
 				<div class="m contact-info">
 	<div class="m-h">
@@ -51,7 +41,23 @@ else {
     	<ul>
   <?php foreach($user_profile['field_organizational_structure']['#items'] as $item): ?>
       <li>
-    			<a href="/nyheter-term/<?php print $item['tid']; ?>"><?php print $item['taxonomy_term']->name?></a>
+    			<a href="/news/byterm/<?php print $item['tid']; ?>"><?php print $item['taxonomy_term']->name; ?></a>
+    		</li>
+  <?php endforeach; ?>
+    	</ul>
+    </div>
+</div>
+<?php endif; ?>
+<?php if(isset($user_profile['field_target_groups']['#items']) && count($user_profile['field_target_groups']['#items'])): ?>
+<div class="m contact-info org">
+	<div class="m-h">
+    	<h2>Målgrupper</h2>
+    </div>
+    <div class="m-c">
+    	<ul>
+  <?php foreach($user_profile['field_target_groups']['#items'] as $item): ?>
+      <li>
+    			<a href="/news/byterm/<?php print $item['tid']; ?>"><?php print $item['taxonomy_term']->name; ?></a>
     		</li>
   <?php endforeach; ?>
     	</ul>
@@ -59,7 +65,7 @@ else {
 </div>
 <?php endif; ?>
 <?php if(isset($user_profile['field_firstname']['#object']->uid)) :?>
-<script type="text/javascript">
+<!-- <script type="text/javascript">
 jQuery(function(){
 	var userstatus = [];
 	jQuery.getJSON('/vision/<?php print $user_profile['field_firstname']['#object']->uid;?>/status', function(data) {
@@ -88,5 +94,5 @@ jQuery(function(){
 	  jQuery('.main-content .user-status p').html(userstatus.join(', '));
 	});
 });
-</script>
+</script> -->
 <?php endif; ?>

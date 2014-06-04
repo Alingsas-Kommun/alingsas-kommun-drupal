@@ -64,7 +64,7 @@
   <div class="comment">
 		<span class="date"><?php print $created; ?></span>
 		<h3><?php print $author; ?></h3>
-		<p><?php print $content['comment_body'][0]['#markup']; ?></p>
+		<p><?php print nl2br($content['comment_body'][0]['#markup']); ?></p>
 	</div>
 
 </div>

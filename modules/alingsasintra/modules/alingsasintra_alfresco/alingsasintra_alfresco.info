@@ -1,0 +1,6 @@
+name = Alingsås Intranet Alfresco REST and CMIS
+description = Alfresco REST integration
+package = Alingsås Intranet
+core = 7.x
+stylesheets[all][] = alingsasintra_alfresco.css
+dependencies[] = cmis_common

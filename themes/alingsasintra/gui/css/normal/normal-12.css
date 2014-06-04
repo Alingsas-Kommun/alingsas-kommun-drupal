@@ -1,0 +1,385 @@
+@media only screen and (min-width: 940px) and (max-width:1220px) {
+
+/*
+ * ==========================================================
+ * Grid
+ * ==========================================================
+ */
+
+.grid-1, .grid-2, .grid-3, .grid-4, .grid-5, .grid-6, .grid-7, .grid-8, .grid-9, .grid-10, 
+.grid-11, .grid-12 {
+  display: inline;
+  float: left;
+  clear: none;
+  position: relative;
+}
+
+.push-1, .pull-1, .push-2, .pull-2, .push-3, .pull-3, .push-4, .pull-4,
+.push-5, .pull-5, .push-6, .pull-6, .push-7, .pull-7, .push-8, .pull-8,
+.push-9, .pull-9, .push-10, .pull-10, .push-11, .pull-11, .push-12, .pull-12 {
+  position: relative;
+}
+
+/*
+ * ==========================================================
+ * Alpha - Omega
+ * ==========================================================
+ */
+
+.alpha {
+  margin-left: 0;
+}
+
+.omega {
+  margin-right: 0;
+}
+
+/*
+ * ==========================================================
+ * Container
+ * ==========================================================
+ */
+
+body {
+  min-width:940px;
+}
+
+.container-12 {
+  margin-left:auto;
+  margin-right:auto;
+  width:940px;
+}
+
+/*
+ * ==========================================================
+ * Columns
+ * ==========================================================
+ */
+ 
+ /* Special columns */
+.container-12 .region-content {
+	margin-right:20px;
+	width:380px;
+}
+.container-12 .region-sidebar-second {
+	margin-right:0;
+	width:300px;
+}
+.container-12 .region-sidebar-third.grid-3 {
+	width:220px;
+}
+.container-12 .region-sidebar-third.grid-3  .toggle-module .m-h h2 {
+	width:73%;
+}
+/* Header */
+.header-second .user-profile .user-message {
+	margin-left:25px;
+}
+.container-12  .header-search {
+	width:286px;
+}
+.container-12 .header-search input#edit-keys {
+	width:186px;
+}
+.header-second .user-profile.grid-4:after {
+	left:30px;
+}
+.container-12 .grid-1 {
+  width: 60px;
+}
+
+.container-12 .grid-2 {
+  width: 140px;
+}
+
+.container-12 .grid-3 {
+  width: 220px;
+}
+
+.container-12 .grid-4 {
+  width: 280px;
+}
+
+.container-12 .grid-5 {
+  width: 380px;
+}
+
+.container-12 .grid-6 {
+  width: 460px;
+}
+
+.container-12 .grid-7 {
+  width: 540px;
+}
+
+.container-12 .grid-8 {
+  width: 620px;
+}
+
+.container-12 .grid-9 {
+  width: 700px;
+}
+
+.container-12 .grid-10 {
+  width: 780px;
+}
+
+.container-12 .grid-11 {
+  width: 860px;
+}
+
+.container-12 .grid-12 {
+  width: 940px;
+}
+
+/*
+ * ==========================================================
+ * Prefix
+ * ==========================================================
+ */
+
+.container-12 .prefix-1 {
+  padding-left: 80px;
+}
+
+.container-12 .prefix-2 {
+  padding-left: 160px;
+}
+
+.container-12 .prefix-3 {
+  padding-left: 240px;
+}
+
+.container-12 .prefix-4 {
+  padding-left: 320px;
+}
+
+.container-12 .prefix-5 {
+  padding-left: 400px;
+}
+
+.container-12 .prefix-6 {
+  padding-left: 480px;
+}
+
+.container-12 .prefix-7 {
+  padding-left: 560px;
+}
+
+.container-12 .prefix-8 {
+  padding-left: 640px;
+}
+
+.container-12 .prefix-9 {
+  padding-left: 720px;
+}
+
+.container-12 .prefix-10 {
+  padding-left: 800px;
+}
+
+.container-12 .prefix-11 {
+  padding-left: 880px;
+}
+
+/*
+ * ==========================================================
+ * Suffix
+ * ==========================================================
+ */
+
+.container-12 .suffix-1 {
+  padding-right: 80px;
+}
+
+.container-12 .suffix-2 {
+  padding-right: 160px;
+}
+
+.container-12 .suffix-3 {
+  padding-right: 240px;
+}
+
+.container-12 .suffix-4 {
+  padding-right: 320px;
+}
+
+.container-12 .suffix-5 {
+  padding-right: 400px;
+}
+
+.container-12 .suffix-6 {
+  padding-right: 480px;
+}
+
+.container-12 .suffix-7 {
+  padding-right: 560px;
+}
+
+.container-12 .suffix-8 {
+  padding-right: 640px;
+}
+
+.container-12 .suffix-9 {
+  padding-right: 720px;
+}
+
+.container-12 .suffix-10 {
+  padding-right: 800px;
+}
+
+.container-12 .suffix-11 {
+  padding-right: 880px;
+}
+
+/*
+ * ==========================================================
+ * Push
+ * ==========================================================
+ */
+
+.container-12 .push-1 {
+  left: 80px;
+}
+
+.container-12 .push-2 {
+  left: 160px;
+}
+
+.container-12 .push-3 {
+  left: 240px;
+}
+
+.container-12 .push-4 {
+  left: 320px;
+}
+
+.container-12 .push-5 {
+  left: 400px;
+}
+
+.container-12 .push-6 {
+  left: 480px;
+}
+
+.container-12 .push-7 {
+  left: 560px;
+}
+
+.container-12 .push-8 {
+  left: 640px;
+}
+
+.container-12 .push-9 {
+  left: 720px;
+}
+
+.container-12 .push-10 {
+  left: 800px;
+}
+
+.container-12 .push-11 {
+  left: 880px;
+}
+
+/*
+ * ==========================================================
+ * Pull
+ * ==========================================================
+ */
+
+.container-12 .pull-1 {
+  left: -80px;
+}
+
+.container-12 .pull-2 {
+  left: -160px;
+}
+
+.container-12 .pull-3 {
+  left: -240px;
+}
+
+.container-12 .pull-4 {
+  left: -320px;
+}
+
+.container-12 .pull-5 {
+  left: -400px;
+}
+
+.container-12 .pull-6 {
+  left: -480px;
+}
+
+.container-12 .pull-7 {
+  left: -560px;
+}
+
+.container-12 .pull-8 {
+  left: -640px;
+}
+
+.container-12 .pull-9 {
+  left: -720px;
+}
+
+.container-12 .pull-10 {
+  left: -800px;
+}
+
+.container-12 .pull-11 {
+  left: -880px;
+}
+/* Header */
+#header .header-wrap .header {
+	width:100%;
+}
+/* Nav main */
+.container-12 .nav-main li a {
+	padding:13px 7px;
+	font-size:13px;
+}
+/* Modules */
+.user-profile:after {
+	content:none !important;
+}
+.region-content .main-content .m.teaser .m-c h2,
+.region-content .my-news h3, 
+.region-sidebar-second .company-news h3,
+.container-12 .region-sidebar-third.grid-3 .toggle-module h2 a,
+.container-12 .region-sidebar-third.grid-3 .toggle-module .m-h h2 {
+	font-size:13px;
+}
+.region-content .my-news h3, 
+.region-sidebar-second .company-news h3 {
+	margin-bottom:2px;
+}
+.m.comments .form-content .form-general {
+	width:81%;
+}
+.m.comments .m-c li img + div.comment {
+	width:86%;
+}
+.bulletin-board .m-c h2 a {
+	background:url(../../i/icons/icon-arrow-after.png) no-repeat 77% 63% !important;
+}
+/* Info messages 
+*/
+.container-12 .grid-9 .important-message, 
+.container-12 .grid-9 .info-message {
+	width:670px;
+}
+/* Forms */
+.main-content.news .form-general .row {
+	padding:10px 20px 20px 10px;
+}
+.row .col {
+	padding:0 5px;
+}
+#footer .footer-wrap {
+	width:auto !important;
+}
+/*End @media all and (min-width: 980px) and (min-device-width: 980px), all and (max-device-width: 1024px) and (min-width: 1024px) and (orientation:landscape)*/
+
+}

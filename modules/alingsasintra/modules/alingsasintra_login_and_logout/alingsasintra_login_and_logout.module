@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Login and Logout feature.
+ */
+
+include_once 'alingsasintra_login_and_logout.features.inc';

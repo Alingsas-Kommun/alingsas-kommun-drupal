@@ -75,9 +75,34 @@ function alingsasintra_image($variables) {
     if (isset($variables[$key])) {
       $attributes[$key] = $variables[$key];
     }
+
+    if($key == 'width' && $variables[$key]) {
+      $attributes['style'] = 'max-width:' . $variables[$key] . 'px;';
+    }
   }
 
   return '<img' . drupal_attributes($attributes) . ' /><em class="caption">' . (isset($variables['title']) ? $variables['title'] : '') . '</em>';
+}
+
+function alingsasintra_menu_local_tasks(&$variables) {
+  $output = '';
+  $secondary = '';
+  if (!empty($variables['secondary'])) {
+    $variables['secondary']['#prefix'] .= '<ul class="tabs secondary">';
+    $variables['secondary']['#suffix'] = '</ul>';
+    $secondary = drupal_render($variables['secondary']);
+    for($i=1; isset($variables['primary'][$i]); $i++) {
+      if(isset($variables['primary'][$i]['#active'])) {
+        $variables['primary'][$i]['#suffix'] = $secondary;
+        break;
+      }
+    }
+  }
+  if (!empty($variables['primary'])) {
+    $output .= drupal_render($variables['primary']);
+  }
+
+  return $output;
 }
 
 ?>

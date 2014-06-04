@@ -62,20 +62,21 @@
 					<div id="function-modules" class="cf">
 						<div class="m calendar month">
 							<div class="m-h cf">
-								<span><?php print date('M'); ?></span>
+								<span><?php setlocale(LC_TIME, 'sv_SE.UTF-8'); print date('M'); ?></span>
 							</div>
 							<div class="m-c cf">
 								<span><?php print date('j'); ?></span>
 							</div>
 						</div>
-						<div class="m calendar time">
+<!--						<div class="m calendar time">
 							<div class="m-h cf">
 								<span>Kl</span>
 							</div>
 							<div class="m-c cf">
 								<span><?php print date('H.i')?></span>
 							</div>
-						</div>
+            </div>
+-->
 						<div class="m calendar week">
 							<div class="m-h cf">
 								<span>Vecka</span>
@@ -95,6 +96,12 @@
   				<?php if($logged_in):?>
   				  <?php print theme('links__system_main_menu', array('links' => $main_menu, 'attributes' => array('id' => 'main-menu', 'class' => array('links', 'inline', 'clearfix')))); ?>
   				<?php endif; ?>
+<a target="_blank" href="http://www.alingsas.se" style="
+    float:  right;
+    font-weight: bold;
+    padding: 15px 10px;
+    font-size: 14px;
+">Alingsås.se</a>
 			  </div>
 			</div>
 		</div>
@@ -129,17 +136,19 @@
         <?php if($page['sidebar_second']):?>
             <?php print render($page['sidebar_second']); ?>
         <?php endif; ?>
+        &nbsp;
         </div>
 
         <div class="region-content grid-6">
 
-        <?php if($messages):?>
-            <?php print $messages; ?>
-          <?php endif; ?>
+        <?php if($page['notification_area'] || $messages):?>
+        <?php print render($page['notification_area']); ?>
+        <?php print $messages; ?>
+      <?php endif; ?>
 
         <div class="main-content cf">
 
-          <?php if(isset($node) && $node->type == 'page'):?>
+          <?php if(isset($node) && ($node->type == 'page' || $node->type == 'webform')):?>
           <div class="fav form-type-checkbox">
 							<input type="checkbox" value="<?php print $node->nid; ?>" name="fav-checkbox" id="checkbox-fav">
 							<label for="checkbox-fav">Lägg till i favoriter</label>
@@ -198,16 +207,7 @@ jQuery(function(){
 		<div class="function-nav">
 			<ul>
 				<li>
-					<a href="/">Alingsås.se</a>
-				</li>
-				<li>
-					<a href="/">Tillgänglighet</a>
-				</li>
-				<li>
-					<a href="/">Webbkarta</a>
-				</li>
-				<li>
-					<a href="/">A till Ö</a>
+					<a target="_blank" href="http://www.alingsas.se">Alingsås.se</a>
 				</li>
 			</ul>
 		</div>

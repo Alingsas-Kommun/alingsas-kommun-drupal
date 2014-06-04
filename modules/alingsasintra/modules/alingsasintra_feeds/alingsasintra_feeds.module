@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Feeds feature.
+ */
+
+include_once 'alingsasintra_feeds.features.inc';

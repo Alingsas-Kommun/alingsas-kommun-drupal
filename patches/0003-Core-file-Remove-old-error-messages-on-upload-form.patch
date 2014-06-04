@@ -1,0 +1,26 @@
+From ddcbe56221dde74030ae369bbd25917a7ef70aab Mon Sep 17 00:00:00 2001
+From: Carsten Nielsen <carsten@redpill-linpro.com>
+Date: Wed, 7 Aug 2013 12:55:57 +0200
+Subject: [PATCH 3/3] Core file: Remove old error messages on upload-form.
+
+---
+ www/modules/file/file.module | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/www/modules/file/file.module b/www/modules/file/file.module
+index 3d351fa..67a79e5 100644
+--- a/www/modules/file/file.module
++++ b/www/modules/file/file.module
+@@ -280,7 +280,8 @@ function file_ajax_upload() {
+     $form['#suffix'] .= '<span class="ajax-new-content"></span>';
+   }
+ 
+-  $output = theme('status_messages') . drupal_render($form);
++  $form['#prefix'] .= theme('status_messages');
++  $output =  drupal_render($form);
+   $js = drupal_add_js();
+   $settings = call_user_func_array('array_merge_recursive', $js['settings']['data']);
+ 
+-- 
+1.8.2.2
+

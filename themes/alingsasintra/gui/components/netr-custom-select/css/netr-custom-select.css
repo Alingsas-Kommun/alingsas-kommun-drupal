@@ -1,0 +1,51 @@
+/* Custom select element
+============================================================================================================================ */
+
+/* Wrapper element to enable positioning */
+
+.custom-select-container {position:relative;}
+/* Set the dimensions of the replaced select element and make it transparent. */
+select.form-select.replaced {
+	position:relative;
+	z-index:10;
+	width:100%;
+	height:2.5em;
+	border:0;
+	filter:alpha(opacity=0); /* Move to IE-specific CSS file if you want to. */
+	opacity:0;
+	line-height:2.5;
+}
+.custom-select {
+	display:block;
+	position:absolute;
+	z-index:1;
+	top:0;
+	left:0;
+	width:100%;
+}
+.custom-select > span {
+	display:block;
+	padding:0 30px 0 6px;
+	border:solid 1px #ccc;
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	border-radius:2px;
+	color:#909090;
+	font-style: italic;
+	background:#FFF url(../i/custom-select-bg.png) no-repeat 100% 50%;
+	font-weight:normal;
+	line-height:31px;
+}
+.custom-select span span {
+	display:block;
+	height:31px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}
+.custom-select.active > span {
+	border-color:#ccc;
+	-moz-box-shadow:0 0 2px rgba(0, 0, 0, 0.5);
+	-webkit-box-shadow:0 0 2px rgba(0, 0, 0, 0.5);
+	box-shadow:0 0 2px rgba(0, 0, 0, 0.5);
+}

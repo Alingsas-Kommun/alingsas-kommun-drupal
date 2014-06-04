@@ -1,0 +1,211 @@
+@media print {
+html,body {
+	color:#000;
+	background:#fff;
+}
+body {
+	font:11pt/1.4 Helvetica,"Times New Roman",Times,serif;
+}
+
+h1,h2,h3,h4,h5,h6,
+legend,
+a:link,
+a:visited,
+a:hover,
+a:focus,
+a:active {
+	color:#000;
+}
+
+.grid-1, .grid-2, .grid-3, .grid-4, .grid-5, .grid-6, .grid-7, .grid-8, .grid-9, .grid-10, .grid-11, .grid-12 {
+	clear:both;
+    margin-left: 3%;
+    margin-right: 3%;
+    position: relative;
+}
+
+#nav-main {
+	display:none;
+}
+.nav-supp {
+	display:none;
+}
+
+#search {
+	display:none;
+}
+
+.login-module, .counseling-module, .counseling-filter, .share-module, .social, .events-filter, .paging, .footer-column-third, .theme-image-teaser {
+	display:none;
+}
+
+.events-year, .events-month {
+	display:none;
+}
+.read-more {
+	display:none;
+}
+
+.top-link a {
+	display:none;
+}
+
+.theme-1 input.btn, .theme-1 a.btn {
+	display:none;
+}
+
+a.btn { 
+	display:none;
+}
+
+li {
+	list-style:none;
+}
+
+.theme-1 body {
+	background:#fff;
+	color:#000;
+}
+
+.theme-1 .footer-top {
+	background:#fff;
+	color:#000;
+	border:none;
+}
+
+.theme-1 .footer-top .events-list > ul > li {
+	border:none;
+}
+
+.theme-1 .footer-top h2 {
+	border:none;
+}
+.theme-1 .events-list {
+	border:none;
+}
+
+.theme-1 .footer-column-first .about {
+	border:none;
+}
+
+/*
+=Global classes
+*/
+
+/* System messages */
+.error-message,
+.confirmation-message {
+	border:2px solid;
+	margin:.5em 0;
+}
+
+/* Forms */
+.form-general {
+	margin:1em 0;
+	padding:6px;
+	border:1px solid #ccc;
+	background:#eee;
+}
+.form-general label {
+	display:block;
+}
+.text,
+.radio,
+.checkbox,
+.select {
+	margin:0 0 0.25em;
+}
+.text input {
+	width:95%;
+}
+.text textarea {
+	width:95%;
+	height:10em;
+}
+.pwd input {
+	width:6em;
+}
+.form-general fieldset {
+	margin:1em 0;
+	padding:0.5em;
+	border:1px solid #ccc;
+}
+.control-group {
+	margin:1em 0;
+}
+.checkbox,
+.radio {
+	white-space:nowrap;
+}
+.checkbox input,
+.radio input {
+	vertical-align:middle;
+}
+.checkbox label,
+.radio label {
+	display:inline;
+	margin-left:0.5em;
+	vertical-align:middle;
+}
+.form-general .alt {
+	display:inline;
+	margin:0 1em 0 0;
+}
+.submit-area {
+	margin:1em 0 0.5em;
+	text-align:center;
+}
+
+/*
+=Hidden elements
+*/
+#skip,
+#nav-main,
+#search,
+#nav-sub,
+#nav-supp,
+#nav-supp-2,
+#content-secondary,
+#main-search,
+#print-link,
+.flash {
+	display:none;
+}
+
+/*
+=Breadcrumbs
+*/
+#breadcrumbs {
+	margin:1em 2.2em;
+}
+
+/*
+=Footer
+*/
+#footer {
+	clear:both;
+	padding:1em 0;
+	border-top:1px solid #999;
+}
+#address .org {
+	display:none;
+}
+
+/*
+=Content styling
+*/
+/* Intro */
+.intro {
+	color:#000;
+	font-size:1.2em;
+}
+/* Article info */
+.article-info {
+	margin:1em 0;
+}
+.article-info p {
+	margin:0;
+	font-size:0.94em;
+}
+/* END @media print */
+}

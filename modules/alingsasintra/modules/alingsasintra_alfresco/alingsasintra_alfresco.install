@@ -1,0 +1,35 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions
+ *
+ */
+
+
+/**
+ * Implementation of hook_enable().
+ */
+function alingsasintra_alfresco_enable() {
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function alingsasintra_alfresco_disable() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function alingsasintra_alfresco_uninstall() {
+  $ret = array();
+  return $ret;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function alingsasintra_alfresco_install() {
+  $ret = array();
+  return $ret;
+}

@@ -1,0 +1,96 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions
+ *
+ */
+
+/**
+ * Used by the ACL module.
+ */
+function alingsasintra_access_enabled() {
+  return !alingsasintra_access_disabling();
+}
+
+
+/**
+ * Remembers if we have disabled access.
+ */
+function alingsasintra_access_disabling($set = NULL) {
+  static $disabling = FALSE;
+
+  if (isset($set)) {
+    $disabling = $set;
+  }
+  return $disabling;
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function alingsasintra_access_enable() {
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function alingsasintra_access_disable() {
+  alingsasintra_access_disabling(TRUE);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function alingsasintra_access_uninstall() {
+  $ret = array();
+  return $ret;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function alingsasintra_access_install() {
+  $ret = array();
+  return $ret;
+}
+
+/**
+ * Implements hook_schema().
+*/
+function alingsasintra_access_schema() {
+  $schema['alingsasintra_access_keys'] = array(
+    'description' => 'Maintains the access keys of nodes.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The {node}.nid this record tracks.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'keystring' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The access key.',
+        'translatable' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'keystring_nid' => array('nid', 'keystring'),
+      'nid' => array('nid'),
+      'keystring' => array('keystring'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Create table if not already installed
+ */
+function alingsasintra_access_update_7103() {
+  if(db_table_exists('alingsasintra_access_keys') == FALSE) {
+    drupal_install_schema('alingsasintra_access');
+  }
+}

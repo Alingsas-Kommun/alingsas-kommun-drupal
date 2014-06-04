@@ -41,7 +41,7 @@
       </p>
     <?php endif; ?>
 
-  		<p>Publicerad av: <?php print $name; ?>den <span> <?php print $date; ?></span></p>
+  		<p>Publicerad av: <?php print $name; ?> senast uppdaterad <span> <?php print format_date($node->changed); ?></span></p>
   	</div>
 
   </div>

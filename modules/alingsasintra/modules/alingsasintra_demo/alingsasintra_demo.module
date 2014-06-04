@@ -1,0 +1,372 @@
+<?php
+
+function alingsasintra_demo_block_info() {
+  $blocks = array();
+  $blocks['bulletin_board'] = array(
+      'info' => t('Anslagstavlan'),
+      'status' => 1,
+      'region' => 'sidebar_second',
+      'weight' => 10,
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'pages' => '<front>',
+  );
+  $blocks['open_jobs'] = array(
+      'info' => t('Lediga Tjänster'),
+      'status' => 1,
+      'region' => 'sidebar_second',
+      'weight' => 10,
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'pages' => '<front>',
+  );
+  $blocks['sidebar_user'] = array(
+      'info' => t('Användarnas Boxer'),
+      'status' => 1,
+      'region' => 'sidebar_third',
+      'weight' => 0,
+      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+      'pages' => '',
+  );
+  $blocks['sidebar_mail_calendar'] = array(
+      'info' => t('Användarnas Boxer: Länk till Lotus'),
+      'status' => 1,
+      'region' => 'sidebar_third',
+      'weight' => -15,
+      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+      'pages' => '',
+  );
+  $blocks['sidebar_events'] = array(
+      'info' => t('Användarnas Boxer: Aktiviteter och evenemang'),
+      'status' => 1,
+      'region' => 'sidebar_third',
+      'weight' => 0,
+      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+      'pages' => '',
+  );
+  $blocks['notifications'] = array(
+      'info' => t('Notifications on startpage'),
+      'status' => 1,
+      'region' => 'notification_area',
+      'weight' => 0,
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'pages' => '<front>',
+  );
+  $blocks['notifications_page'] = array(
+      'info' => t('Notifications on organisationpage'),
+      'status' => 1,
+      'region' => 'notification_area',
+      'weight' => 0,
+      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+      'pages' => '<front>',
+  );
+  $blocks['events_page'] = array(
+      'info' => t('Events on organisationpage'),
+      'status' => 1,
+      'region' => 'notification_area',
+      'weight' => 10,
+      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+      'pages' => '<front>',
+  );
+  return $blocks;
+}
+
+function alingsasintra_demo_block_view($delta = '') {
+  switch ($delta) {
+    case 'bulletin_board':
+      $block['content'] = _alingsasintra_block_bulletin_board();
+      return $block;
+      break;
+    case 'open_jobs':
+      $block['content'] = _alingsasintra_block_open_jobs();
+      return $block;
+      break;
+    case 'sidebar_user':
+      $block['content'] = _alingsasintra_block_sidebar_user();
+      return $block;
+      break;
+    case 'sidebar_mail_calendar':
+      $block['content'] = _alingsasintra_block_sidebar_mail_calendar();
+      return $block;
+      break;
+    case 'sidebar_events':
+      $block['content'] = _alingsasintra_block_sidebar_events();
+      return $block;
+      break;
+    case 'notifications':
+      $block['content'] = _alingsasintra_block_notifications();
+      return $block;
+      break;
+    case 'notifications_page':
+      $block['content'] = _alingsasintra_block_notifications_page();
+      return $block;
+      break;
+    case 'events_page':
+      $block['content'] = _alingsasintra_block_events_page();
+      return $block;
+      break;
+  }
+}
+
+function _alingsasintra_block_notifications() {
+  global $user;
+  $user_data = user_load($user->uid);
+  $terms = array();
+  $output = '';
+  $date = format_date(time(), 'custom', 'Y-m-d H:i:s', 'UTC');
+  foreach($user_data->field_organizational_structure['und'] as $term) {
+    $terms[] = $term['tid'];
+  }
+  if(count($terms)) {
+    $result = db_query("SELECT DISTINCT node.nid, field_data_field_notification_type.field_notification_type_value FROM node
+      LEFT JOIN taxonomy_index ON node.nid = taxonomy_index.nid LEFT JOIN field_data_field_notification_type ON node.nid = field_data_field_notification_type.entity_id
+      LEFT JOIN field_data_field_publishdate ON node.nid = field_data_field_publishdate.entity_id
+      LEFT JOIN field_data_field_unpublishdate ON node.nid = field_data_field_unpublishdate.entity_id
+      WHERE node.type='notification'
+      AND node.status=1
+      AND field_data_field_publishdate.field_publishdate_value <= '".$date."'
+      AND field_data_field_unpublishdate.field_unpublishdate_value >= '".$date."'
+      AND (taxonomy_index.tid IN (".join(',', $terms).") OR node.promote=0)
+      ORDER BY node.title");
+  }
+  else {
+    $result = db_query("SELECT DISTINCT node.nid, field_data_field_notification_type.field_notification_type_value FROM node
+      LEFT JOIN field_data_field_notification_type ON node.nid = field_data_field_notification_type.entity_id
+      LEFT JOIN field_data_field_publishdate ON node.nid = field_data_field_publishdate.entity_id
+      LEFT JOIN field_data_field_unpublishdate ON node.nid = field_data_field_unpublishdate.entity_id
+      WHERE node.type='notification'
+      AND node.status=1
+      AND field_data_field_publishdate.field_publishdate_value <= '".$date."'
+      AND field_data_field_unpublishdate.field_unpublishdate_value >= '".$date."'
+      AND node.promote=0
+      ORDER BY node.title");
+  }
+  if($result) {
+    $notification = array();
+    foreach(node_load_multiple($result->fetchCol(0)) as $link) {
+      $notification[$link->field_notification_type[und][0][value]][] = '<li><a href="'.url('node/'.$link->nid).'">'.$link->title.'</a></li>';
+    }
+    if(count($notification[1])) {
+      $not = join(' ', $notification[1]);
+      $output .= <<<EOL
+    <div class="important-message"><ul>
+    {$not}
+    </ul></div>
+EOL;
+    }
+    if(count($notification[0])) {
+      $not = join(' ', $notification[0]);
+      $output .= <<<EOL
+    <div class="info-message"><ul>
+    {$not}
+    </ul></div>
+EOL;
+    }
+  }
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_block_notifications_page() {
+  $output = '';
+  if ( arg(0) == 'node' && is_numeric(arg(1)) && ! arg(2) ) {
+    $node = node_load(arg(1));
+    $terms = array();
+    foreach($node->field_organizational_structure['und'] as $term) {
+      $terms[] = $term['tid'];
+    }
+    if(count($terms)) {
+      $date = format_date(time(), 'custom', 'Y-m-d H:i:s', 'UTC');
+      $result = db_query("SELECT DISTINCT node.nid, field_data_field_notification_type.field_notification_type_value FROM node
+          LEFT JOIN taxonomy_index ON node.nid = taxonomy_index.nid LEFT JOIN field_data_field_notification_type ON node.nid = field_data_field_notification_type.entity_id
+          LEFT JOIN field_data_field_publishdate ON node.nid = field_data_field_publishdate.entity_id
+          LEFT JOIN field_data_field_unpublishdate ON node.nid = field_data_field_unpublishdate.entity_id
+          WHERE node.type='notification'
+          AND node.status=1
+          AND field_data_field_publishdate.field_publishdate_value <= '".$date."'
+          AND field_data_field_unpublishdate.field_unpublishdate_value >= '".$date."'
+          AND node.promote=1
+          AND taxonomy_index.tid IN (".join(',', $terms).")
+          ORDER BY node.title");
+    }
+    if($result) {
+      $notification = array();
+      foreach(node_load_multiple($result->fetchCol(0)) as $link) {
+        $notification[$link->field_notification_type[und][0][value]][] = '<li><a href="'.url('node/'.$link->nid).'">'.$link->title.'</a></li>';
+      }
+      if(count($notification[1])) {
+        $not = join(' ', $notification[1]);
+        $output .= <<<EOL
+      <div class="important-message"><ul>
+      {$not}
+      </ul></div>
+EOL;
+      }
+      if(count($notification[0])) {
+        $not = join(' ', $notification[0]);
+        $output .= <<<EOL
+      <div class="info-message"><ul>
+      {$not}
+      </ul></div>
+EOL;
+      }
+    }
+  }
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_block_events_page() {
+  $output = '';
+  if ( arg(0) == 'node' && is_numeric(arg(1)) && ! arg(2) ) {
+    $node = node_load(arg(1));
+    $terms = array();
+    foreach($node->field_organizational_structure['und'] as $term) {
+      $terms[] = $term['tid'];
+    }
+    if(count($terms)) {
+      $result = db_query("SELECT DISTINCT node.nid, field_data_field_date.field_date_value FROM node
+          LEFT JOIN taxonomy_index ON node.nid = taxonomy_index.nid LEFT JOIN field_data_field_date ON node.nid = field_data_field_date.entity_id
+          WHERE node.type='event'
+          AND node.status=1
+          AND node.promote=1
+          AND taxonomy_index.tid IN (".join(',', $terms).")
+          ORDER BY field_data_field_date.field_date_value");
+    }
+    if($result) {
+      $event = array();
+      foreach(node_load_multiple($result->fetchCol(0)) as $e) {
+        $wrapper = entity_metadata_wrapper('node', $e);
+        $link = url('node/'.$e->nid);
+        $title = $wrapper->title->value(array('sanitize' => TRUE));
+        $date = $wrapper->field_date->value();
+        $date = format_date(strtotime($date['value']), 'long');
+        $body = $wrapper->field_introduction->value();
+        $events[] = <<<EOL
+        <li class="cf">
+          <h3><a href="{$link}">{$title}</a></h3>
+				<span class="date">{$date}</span>
+				<p>{$body}</p>
+        </li>
+EOL;
+      }
+      if(count($events)) {
+        $events = join(' ', $events);
+        $output .= <<<EOL
+      <div class="m news-listing company-news unit">
+  <div class="m-h cf">
+		<h2>Evenemang från Organisation</h2>
+	</div>
+
+  <div class="m-c cf">
+	  	          <ul>{$events}</ul>
+  </div>
+</div>
+EOL;
+      }
+    }
+  }
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_block_bulletin_board() {
+  $output = <<<EOL
+      <div class="m bulletin-board open">
+      	<div class="m-h">
+      	</div>
+      	<div class="m-c cf">
+      		<h2><a href="/anslagstavlan">Anslagstavlan</a></h2>
+      	</div>
+      	<span></span>
+      	<span></span>
+      </div>
+EOL;
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_block_open_jobs() {
+  $output = <<<EOL
+      <div class="m job-module cf">
+      		<div class="m-h">
+      		</div>
+      		<div class="m-c">
+      			<h2><a href="/jobb">Lediga tjänster</a></h2>
+      		</div>
+      </div>
+EOL;
+  return array('#markup' => $output);
+}
+function _alingsasintra_block_sidebar_user() {
+  global $user;
+  $user_data = user_load($user->uid);
+  $terms = array();
+  $output_tools = '';
+  if(isset($user_data->field_organizational_structure['und']) && is_array($user_data->field_organizational_structure['und'])) {
+    foreach($user_data->field_organizational_structure['und'] as $term) {
+      $terms[] = $term['tid'];
+    }
+  }
+  if(count($terms)) {
+    $result = db_query("SELECT DISTINCT node.nid FROM node
+      LEFT JOIN taxonomy_index ON node.nid = taxonomy_index.nid
+      WHERE node.type='verktyg'
+        AND node.status=1
+        AND (taxonomy_index.tid IN (".join(',', $terms).") OR node.promote=0)
+      ORDER BY node.title");
+  }
+  else {
+    $result = db_query("SELECT DISTINCT node.nid FROM node
+    WHERE node.type='verktyg'
+      AND node.status=1
+      AND node.promote=0
+    ORDER BY node.title");
+  }
+
+  if($result) {
+    $links = array();
+    foreach(node_load_multiple($result->fetchCol()) as $link) {
+      $links[] = '<li><a href="'.$link->field_link['und'][0]['value'].'" target="_blank">'.$link->title.'</a></li>';
+    }
+    if(count($links)) {
+      $links = join(' ', $links);
+      $output_tools = <<<EOL
+    <div id="tool" class="m toggle-module toggle cf open">
+	<div class="m-h cf">
+		<span class="toggle-icon tool"></span>
+		<h2>Verktyg</h2>
+	</div>
+	<div class="m-c cf">
+		<div class="toggle-list">
+		  {$links}
+    </div>
+	</div>
+</div>
+EOL;
+    }
+  }
+
+  $output = <<<EOL
+      {$output_tools}
+EOL;
+  return array('#markup' => $output);
+}
+
+function _alingsasintra_block_sidebar_events() {
+  $output = <<<EOL
+      <div id="cal" class="m toggle-module cf">
+      	<div class="m-h cf">
+      		<span class="toggle-icon cal"></span>
+      		<h2><a href="/events">Aktiviteter och kurser</a></h2>
+      	</div>
+      </div>
+EOL;
+        return array('#markup' => $output);
+}
+
+function _alingsasintra_block_sidebar_mail_calendar() {
+  $output = <<<EOL
+      <div id="message" class="m toggle-module cf">
+      	<div class="m-h cf">
+      		<span class="toggle-icon message"></span>
+      		<h2><a target="_blank" href="[add link in sourcecode]">Min e-post och kalender</a></h2>
+      	</div>
+      </div>
+EOL;
+      return array('#markup' => $output);
+}

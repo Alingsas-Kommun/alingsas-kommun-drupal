@@ -1,0 +1,139 @@
+@media print {
+html,body {
+	color:#000;
+	background:#fff;
+}
+body {
+	font:11pt/1.4 Georgia,"Times New Roman",Times,serif;
+}
+h1,h2,h3,h4,h5,h6,
+legend,
+a:link,
+a:visited,
+a:hover,
+a:focus,
+a:active {
+	color:#000;
+}
+
+/*
+=Global classes
+*/
+
+/* System messages */
+.error-message,
+.confirmation-message {
+	border:2px solid;
+	margin:.5em 0;
+}
+
+/* Forms */
+.form-general {
+	margin:1em 0;
+	padding:6px;
+	border:1px solid #ccc;
+	background:#eee;
+}
+.form-general label {
+	display:block;
+}
+.text,
+.radio,
+.checkbox,
+.select {
+	margin:0 0 0.25em;
+}
+.text input {
+	width:95%;
+}
+.text textarea {
+	width:95%;
+	height:10em;
+}
+.pwd input {
+	width:6em;
+}
+.form-general fieldset {
+	margin:1em 0;
+	padding:0.5em;
+	border:1px solid #ccc;
+}
+.control-group {
+	margin:1em 0;
+}
+.checkbox,
+.radio {
+	white-space:nowrap;
+}
+.checkbox input,
+.radio input {
+	vertical-align:middle;
+}
+.checkbox label,
+.radio label {
+	display:inline;
+	margin-left:0.5em;
+	vertical-align:middle;
+}
+.form-general .alt {
+	display:inline;
+	margin:0 1em 0 0;
+}
+.submit-area {
+	margin:1em 0 0.5em;
+	text-align:center;
+}
+
+/*
+=Hidden elements
+*/
+#skip,
+#nav-main,
+#search,
+#nav-sub,
+#nav-supp,
+#nav-supp-2,
+#content-secondary,
+#main-search,
+#print-link,
+.flash {
+	display:none;
+}
+
+/*
+=Breadcrumbs
+*/
+#breadcrumbs {
+	margin:1em 0;
+}
+
+/*
+=Footer
+*/
+#footer {
+	clear:both;
+	padding:1em 0;
+	border-top:1px solid #999;
+}
+#address .org {
+	display:none;
+}
+
+/*
+=Content styling
+*/
+/* Intro */
+.intro {
+	color:#000;
+	font-size:1.2em;
+}
+/* Article info */
+.article-info {
+	margin:1em 0;
+}
+.article-info p {
+	margin:0;
+	font-size:0.94em;
+}
+/* END @media print */
+}

@@ -1,0 +1,25 @@
+From 8a875539acff07ff8a9d44112821a56bdae1e8e8 Mon Sep 17 00:00:00 2001
+From: Carsten Nielsen <carsten@redpill-linpro.com>
+Date: Wed, 7 Aug 2013 12:35:21 +0200
+Subject: [PATCH 2/3] Ckeditor: Deactivate wysiwyg on summary fields.
+
+---
+ www/sites/all/modules/ckeditor/ckeditor.module | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/www/sites/all/modules/ckeditor/ckeditor.module b/www/sites/all/modules/ckeditor/ckeditor.module
+index 809b201..1c2b8a2 100644
+--- a/www/sites/all/modules/ckeditor/ckeditor.module
++++ b/www/sites/all/modules/ckeditor/ckeditor.module
+@@ -283,7 +283,7 @@ function ckeditor_pre_render_text_format($element) {
+     }
+     if (isset($element['summary'])) {
+       $element['value'] = ckeditor_load_by_field($element['value'], $element['format']['format'], TRUE, $element['summary']['#id']);
+-      $element['summary'] = ckeditor_load_by_field($element['summary'], $element['format']['format'], FALSE);
++      //$element['summary'] = ckeditor_load_by_field($element['summary'], $element['format']['format'], FALSE);
+     }
+     else {
+       $element['value'] = ckeditor_load_by_field($element['value'], $element['format']['format']);
+-- 
+1.8.2.2
+

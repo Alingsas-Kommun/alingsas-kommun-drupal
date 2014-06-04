@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Search nodes feature.
+ */
+
+include_once 'alingsasintra_search_nodes.features.inc';

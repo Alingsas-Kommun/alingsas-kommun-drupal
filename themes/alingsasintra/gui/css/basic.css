@@ -1,0 +1,345 @@
+﻿/* Note: this file may use CSS 3 properties that currently may cause errors when run through the W3C CSS validator. */
+
+/* Viewport settings for IE10 and Opera Mobile 11+ */
+@-ms-viewport { width:device-width; initial-scale:1.0; }
+@-o-viewport  { width:device-width; initial-scale:1.0; }
+@viewport     { width:device-width; initial-scale:1.0; }
+
+@media all {
+
+/* RESET
+ * Resets and basic typography and colors
+================================================================================ */
+blockquote,body,caption,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,li,ul,ol,p,pre,textarea,table,td,th {
+	margin:0;
+	padding:0;
+}
+address,dl,fieldset,p,pre,ul,ol,table {
+	margin:0 0 20px;
+}
+ul,ol,dd {
+	margin-left:40px;
+}
+td ul,td ol {
+	margin-left:15px;
+}
+ol ul,ul ol,ul ul,ol ol,td ul,td ol {
+	margin-bottom:0;
+}
+blockquote {
+	padding:1em 40px 0;
+	font-size: 14px;
+	line-height: 21px;
+	background:url(../i/quotes.png) no-repeat 0 12px;
+	font-style:italic;
+}
+dt {
+	font-weight:bold;
+}
+table {
+	width:100%;
+	border-collapse:collapse;
+	border-spacing:0;
+}
+table,th,td {
+	border:1px solid #aaa;
+}
+th,td {
+	vertical-align:top;
+}
+caption,th {
+	font-weight:bold;
+	text-align:left;
+}
+thead th {
+	background: #eee;
+}
+img {
+	display:block;
+	border:none;
+}
+img.ext-link {
+	display:inline;
+	padding:0 5px 0 1px;
+	width:auto !important;
+}
+html,body {
+	color:#333;
+	background:url(../i/background-bg.png) #f8f6f2;
+}
+/* Base font size of 13px, see conversion table on http://labs.oktavilla.se/em-table/ */
+html {
+	font:13px/20px Arial, Helvetica, sans-serif;
+}
+code,
+kbd,
+pre {
+	font-family:Monaco, Courier, "Courier New", Tahoma;
+}
+h1,h2,h3,h4,h5,h6 {
+	margin:1em 0 0.2em;
+	font-weight:bold;
+	font-size:1em;
+	font-family:Arial, Helvetica, sans-serif;
+	-webkit-hyphens:auto;
+	-moz-hyphens:auto;
+	-ms-hyphens:auto;
+	hyphens:auto;
+	color:#333;
+}
+h1:first-child,
+h2:first-child,
+h3:first-child,
+h4:first-child {
+	margin-top:0;
+}
+h1 {
+	font-size:26px;
+	line-height:34px;
+}
+h2 {
+	font-size:20px;
+	line-height:26px;
+}
+h3 {
+	font-size:16px;
+	line-height:22px;
+}
+h4 {
+	font-size:14px;
+}
+h5,
+h6 {
+	font-weight:bold;
+	font-size:1em;
+}
+legend {
+	color:#333;
+	white-space:normal;
+}
+a {
+	color:#007c72;
+	text-decoration:none;
+}
+a:visited {
+	color:#007c72;
+}
+a:link:hover,
+a:focus,
+a:active {
+	text-decoration:underline;
+}
+li p {
+	margin-bottom:0;
+}
+p {
+	font-size:13px;
+	line-height:20px;
+}
+.main-content > p a {
+	text-decoration:underline;
+}
+b,strong {
+	font-weight:bold;
+}
+i,em {
+	font-style:italic;
+}
+input,button,textarea,select {
+	font:inherit;
+}
+/* Reset search input look in webkit, making it possible to style it as a normal text input */
+input[type=search] {
+	-webkit-appearance:textfield;
+	-webkit-box-sizing:content-box;
+}
+input::-webkit-search-decoration,
+input::-webkit-search-cancel-button {
+	display:none;
+}
+/* Reset extra padding on gecko buttons */
+button::-moz-focus-inner {
+	border:0;
+	padding:0;
+}
+
+/* Tables
+-------------------------------------------------------------- */
+table {
+	width:100%;
+	border-spacing:0;
+	border-collapse:collapse;
+}
+table,th,td {
+	border:1px solid #ccc;
+}
+
+th,
+td {
+	padding:8px 20px;
+	vertical-align:top;
+}
+th {
+	font-weight:bold;
+	text-align:left;
+}
+td {
+	color:#666;
+}
+thead th {
+	background:#f3f3f3;
+	background:-moz-linear-gradient(top, #ffffff 0%, #eee 100%);
+	background:-o-linear-gradient(top, #ffffff 0%,#eee 100%);
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#eee));
+	background:-webkit-linear-gradient(top, #ffffff 0%,#eee 100%);
+	background:linear-gradient(to bottom, #ffffff 0%,#eee 100%);
+}
+
+/* GLOBAL CLASSES
+================================================================================ */
+/* Easy clearing of floats
+ * See http://positioniseverything.net/easyclearing.html
+-------------------------------------------------------------- */
+.cf:after {
+	display:block;
+	clear:both;
+	height:0;
+	visibility:hidden;
+	content:" ";
+	font-size:0;
+}
+
+
+/* Structural elements
+ * Not visible when CSS is enabled but visible for screen readers
+-------------------------------------------------------------- */
+.structural,
+.structural > *,
+.js .js-structural {
+	position:absolute;
+	left:-9999px;
+}
+
+
+/* Hidden elements
+ * Hidden even for screen readers
+-------------------------------------------------------------- */
+.hidden {
+	display:none;
+	visibility:hidden;
+}
+
+/* Clear elements
+ * Used by content editors in TinyMCE
+-------------------------------------------------------------- */
+.clear {
+	clear:both;
+}
+
+/* Nowrap
+ * Prevent line breaking, used by content editors in TinyMCE
+-------------------------------------------------------------- */
+.nowrap {
+	white-space:nowrap;
+}
+
+/* Zebra background.
+-------------------------------------------------------------- */
+.my-fav li.odd,
+tr.odd,
+.zebra tbody tr:nth-child(even) {
+	background:#f5f5f5;
+}
+
+/* Scrollable tables
+-------------------------------------------------------------- */
+.scroll-table {
+	position:relative;
+	overflow:hidden;
+	width:100%;
+}
+.scroll-table:after {
+	content:'';
+	position:absolute;
+	top:0;
+	left:100%;
+	width:50px;
+	height:100%;
+	border-radius:15px 0 0 15px / 125px 0 0 125px;
+	box-shadow:-6px 0 5px rgba(0, 0, 0, 0.32);
+}
+.scroll-table > .scroll-table-inner {
+	width:100%;
+	overflow:scroll;
+	overflow-x:scroll;
+	overflow-y:visible;
+	margin:0 0 20px;
+	padding:15px 0 0;
+}
+
+
+/* Images
+-------------------------------------------------------------- */
+.left,
+.right,
+.left-dec,
+.right-dec {
+	float:left;
+	width:auto;
+	margin:3px 18px 10px 0;
+}
+.right,
+.right-dec {
+	float:right;
+	margin:3px 0 10px 18px;
+}
+img.fullwidth,
+img.fullwidth-dec,
+span.fullwidth img,
+span.fullwidth-dec img {
+	display:block;
+	margin:3px 0 10px;
+}
+img.dec,
+img.left-dec,
+img.right-dec,
+img.fullwidth-dec,
+span.dec img,
+span.left-dec img,
+span.right-dec img,
+span.fullwidth-dec img {
+	padding:4px;
+	border:1px solid #cfcfcf;
+	background:#fff;
+}
+.caption,
+.caption em {
+	display:block;
+}
+.caption em {
+	font-style:normal;
+	font-size:0.916em;
+}
+.caption p,
+.caption em {
+	margin-bottom:0;
+}
+.caption sup {
+	bottom:3px;
+}
+
+
+
+/* Article
+-------------------------------------------------------------- */
+.article {
+	-webkit-hyphens:auto;
+	-moz-hyphens:auto;
+	-ms-hyphens:auto;
+	hyphens:auto;
+}
+
+/* Columns
+-------------------------------------------------------------- */
+/* END @media all */
+}

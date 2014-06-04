@@ -1,4 +1,3 @@
-<?php dpm($content);?>
 				<h3><a href="<?php print $content['field_link']; ?>"><?php print $title; ?></a></h3>
 				<span class="date"><?php print $date; ?></span>
 				<p>

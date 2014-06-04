@@ -50,7 +50,7 @@
 
       </p>
     <?php endif; ?>
-  		<p>Publicerad av: <?php print $name; ?>den <span> <?php print $date; ?></span></p>
+  		<p>Publicerad av: <?php print $name; ?> senast uppdaterad <span> <?php print format_date($node->changed); ?></span></p>
   	</div>
 
 </div>
@@ -67,5 +67,18 @@
   </div>
 </div>
 
+<div>
+<?php endif; ?>
+
+<?php if($content['comments']):?>
+</div>
+<div id="showcomments" class="m comments toggle">
+    <div class="m-h open">
+    	<h2>Kommentarer <span>(<?php print $comment_count; ?>)</span></h2>
+    </div>
+    <div class="m-c">
+    <?php print render($content['comments']); ?>
+    </div>
+</div>
 <div>
 <?php endif; ?>

@@ -1,0 +1,7 @@
+name = Developer Additions
+description = Module for developers of Alingsås Intranet
+package = Alingsås Intranet
+core = 7.x
+dependencies[] = alingsasintra
+dependencies[] = devel
+dependencies[] = advanced_help
